@@ -1,0 +1,20 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// Tests may use newer runtime APIs than the node build targets.
+		"lib": ["es2023"],
+		"noEmit": true,
+		"incremental": false,
+		"declaration": false,
+		"sourceMap": false,
+		"removeComments": false,
+		"types": ["node", "vitest/globals"],
+		"noUnusedLocals": false
+	},
+	"include": [
+		"credentials/**/*",
+		"nodes/**/*",
+		"shared/**/*",
+		"tests/**/*"
+	]
+}

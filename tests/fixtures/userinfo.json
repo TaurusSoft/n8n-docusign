@@ -1,0 +1,19 @@
+{
+	"sub": "99999999-8888-7777-6666-555555555555",
+	"name": "Test Sender",
+	"email": "sender@example.com",
+	"accounts": [
+		{
+			"account_id": "00000000-0000-0000-0000-000000000000",
+			"account_name": "Secondary Account",
+			"is_default": false,
+			"base_uri": "https://demo.docusign.net"
+		},
+		{
+			"account_id": "11111111-2222-3333-4444-555555555555",
+			"account_name": "Primary Account",
+			"is_default": true,
+			"base_uri": "https://demo.docusign.net"
+		}
+	]
+}

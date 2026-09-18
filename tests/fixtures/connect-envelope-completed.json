@@ -1,0 +1,18 @@
+{
+	"event": "envelope-completed",
+	"apiVersion": "v2.1",
+	"uri": "/restapi/v2.1/accounts/11111111-2222-3333-4444-555555555555/envelopes/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+	"retryCount": 0,
+	"configurationId": 123456,
+	"generatedDateTime": "2026-09-17T10:05:00.0000000Z",
+	"data": {
+		"accountId": "11111111-2222-3333-4444-555555555555",
+		"userId": "99999999-8888-7777-6666-555555555555",
+		"envelopeId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+		"envelopeSummary": {
+			"status": "completed",
+			"emailSubject": "Please sign this document",
+			"completedDateTime": "2026-09-17T10:04:55.0000000Z"
+		}
+	}
+}

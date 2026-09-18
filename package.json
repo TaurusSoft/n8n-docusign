@@ -1,0 +1,76 @@
+{
+	"name": "@taurussoftware/n8n-nodes-docusign",
+	"version": "0.1.0",
+	"description": "n8n community node for the Docusign eSignature REST API - send envelopes for signature, manage recipients, documents and templates, and react to Docusign Connect webhooks",
+	"license": "MIT",
+	"homepage": "https://github.com/TaurusSoft/n8n-docusign#readme",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"n8n-node",
+		"docusign",
+		"esignature",
+		"electronic-signature",
+		"envelope"
+	],
+	"author": {
+		"name": "TaurusSoftware",
+		"email": "info@taurussoftware.de"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/TaurusSoft/n8n-docusign.git"
+	},
+	"bugs": {
+		"url": "https://github.com/TaurusSoft/n8n-docusign/issues"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"typecheck": "tsc -p tsconfig.test.json --noEmit",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/DocusignOAuth2Api.credentials.js",
+			"dist/credentials/DocusignJwtApi.credentials.js",
+			"dist/credentials/DocusignConnectApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/Docusign/Docusign.node.js",
+			"dist/nodes/DocusignTrigger/DocusignTrigger.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "^0.48.4",
+		"@vitest/coverage-v8": "^5.0.1",
+		"eslint": "^9.39.4",
+		"msw": "^2.15.0",
+		"n8n-workflow": "^2.16.0",
+		"prettier": "^3.9.7",
+		"release-it": "^20.2.0",
+		"typescript": "^5.9.3",
+		"vitest": "^5.0.1"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
