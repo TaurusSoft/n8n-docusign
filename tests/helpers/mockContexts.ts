@@ -53,6 +53,12 @@ export interface MockContext {
 	node: INode;
 }
 
+/** What a node wrote straight onto the HTTP response, bypassing `webhookResponse`. */
+export interface SentResponse {
+	statusCode?: number;
+	body?: unknown;
+}
+
 const DEFAULT_CREDENTIALS: Record<string, IDataObject> = {
 	docusignOAuth2Api: {
 		environment: 'demo',
@@ -224,10 +230,30 @@ export function createLoadOptionsFunctions(
 /** Fake `IWebhookFunctions`, including the raw body the HMAC check needs. */
 export function createWebhookFunctions(
 	options: MockContextOptions = {},
-): IWebhookFunctions & MockContext {
+): IWebhookFunctions & MockContext & { sentResponse: SentResponse } {
 	const base = createExecuteFunctions(options) as unknown as Record<string, unknown> & MockContext;
 	const body = options.body ?? {};
 	const rawBody = options.rawBody ?? Buffer.from(JSON.stringify(body), 'utf8');
+	const sentResponse: SentResponse = {};
+
+	// Enough of an express response for a node that sets a status and a body.
+	const responseObject = {
+		status(statusCode: number) {
+			sentResponse.statusCode = statusCode;
+
+			return responseObject;
+		},
+		json(payload: unknown) {
+			sentResponse.body = payload;
+
+			return responseObject;
+		},
+		send(payload: unknown) {
+			sentResponse.body = payload;
+
+			return responseObject;
+		},
+	};
 
 	return {
 		...base,
@@ -236,8 +262,10 @@ export function createWebhookFunctions(
 		getBodyData: () => body,
 		getHeaderData: () => options.headers ?? {},
 		getRequestObject: () => ({ rawBody: options.rawBody === null ? undefined : rawBody }),
+		getResponseObject: () => responseObject,
+		sentResponse,
 		getNodeWebhookUrl: () => options.webhookUrl ?? 'https://n8n.example.com/webhook/docusign',
-	} as unknown as IWebhookFunctions & MockContext;
+	} as unknown as IWebhookFunctions & MockContext & { sentResponse: SentResponse };
 }
 
 /** Fake `IHookFunctions` for the webhook lifecycle methods. */

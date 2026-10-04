@@ -446,11 +446,14 @@ export class DocusignTrigger implements INodeType {
 			}
 
 			if (!verifyHmacSignature(rawBody, secret, headers)) {
-				// No workflowData: the run never starts and the payload is dropped.
-				return {
-					webhookResponse: { status: 'unauthorized' },
-					workflowData: undefined,
-				};
+				// Answering 200 would let Docusign count the rejection as a successful
+				// delivery: no retry, nothing in the Connect failure log, and no sign
+				// anywhere that a wrong secret is swallowing every webhook. Writing the
+				// status directly is the only way to answer 401 from a webhook node.
+				const response = this.getResponseObject();
+				response.status(401).json({ status: 'unauthorized' });
+
+				return { noWebhookResponse: true };
 			}
 		}
 

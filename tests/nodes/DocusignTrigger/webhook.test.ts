@@ -126,7 +126,11 @@ describe('DocusignTrigger.webhook HMAC verification', () => {
 		const result = await node.webhook.call(ctx as unknown as IWebhookFunctions);
 
 		expect(result.workflowData).toBeUndefined();
-		expect(result.webhookResponse).toEqual({ status: 'unauthorized' });
+		// n8n answers 200 for a webhookResponse, so the status has to be written
+		// onto the response itself for Docusign to log the failed delivery.
+		expect(ctx.sentResponse.statusCode).toBe(401);
+		expect(ctx.sentResponse.body).toEqual({ status: 'unauthorized' });
+		expect(result.noWebhookResponse).toBe(true);
 	});
 
 	it('rejects a request without any signature header', async () => {
@@ -135,6 +139,15 @@ describe('DocusignTrigger.webhook HMAC verification', () => {
 		const result = await node.webhook.call(ctx as unknown as IWebhookFunctions);
 
 		expect(result.workflowData).toBeUndefined();
+		expect(ctx.sentResponse.statusCode).toBe(401);
+	});
+
+	it('leaves the response untouched for a signature that matches', async () => {
+		const ctx = webhookCtx();
+
+		await node.webhook.call(ctx as unknown as IWebhookFunctions);
+
+		expect(ctx.sentResponse.statusCode).toBeUndefined();
 	});
 
 	it('accepts when one of several signature headers matches', async () => {
