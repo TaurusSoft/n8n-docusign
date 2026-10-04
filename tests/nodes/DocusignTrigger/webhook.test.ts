@@ -210,6 +210,36 @@ describe('DocusignTrigger.webhook event filtering', () => {
 		expect(result).toEqual({ workflowData: undefined });
 	});
 
+	it('filters a legacy payload by the event derived from its envelope status', async () => {
+		const payload = { envelopeId: 'env-1', envelopeStatus: { status: 'Voided' } };
+		const rawBody = rawBodyFor(payload);
+		const ctx = webhookCtx({ body: payload, rawBody, headers: signatureHeaders(rawBody) });
+
+		const result = await node.webhook.call(ctx as unknown as IWebhookFunctions);
+
+		expect(result).toEqual({ workflowData: undefined });
+	});
+
+	it('runs on a legacy payload whose derived event was selected', async () => {
+		const payload = { envelopeId: 'env-1', envelopeStatus: { status: 'Completed' } };
+		const rawBody = rawBodyFor(payload);
+		const ctx = webhookCtx({ body: payload, rawBody, headers: signatureHeaders(rawBody) });
+
+		const result = await node.webhook.call(ctx as unknown as IWebhookFunctions);
+
+		expect(result.workflowData?.[0][0].json).toMatchObject({ envelopeId: 'env-1' });
+	});
+
+	it('passes a payload on when no event can be determined for it', async () => {
+		const payload = { envelopeId: 'env-1', envelopeStatus: { status: 'Created' } };
+		const rawBody = rawBodyFor(payload);
+		const ctx = webhookCtx({ body: payload, rawBody, headers: signatureHeaders(rawBody) });
+
+		const result = await node.webhook.call(ctx as unknown as IWebhookFunctions);
+
+		expect(result.workflowData?.[0][0].json).toMatchObject({ envelopeId: 'env-1' });
+	});
+
 	it('accepts every event when no filter was set', async () => {
 		const payload = { ...connectPayload, event: 'recipient-declined' };
 		const rawBody = rawBodyFor(payload);

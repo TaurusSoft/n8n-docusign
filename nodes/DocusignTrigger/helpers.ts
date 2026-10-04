@@ -63,8 +63,7 @@ export function verifyHmacSignature(
 /**
  * Reads the event name out of a Connect payload.
  *
- * The current JSON format puts it in `event`; the legacy envelope-only format
- * has no event field at all, in which case there is nothing to filter on.
+ * Only the current JSON format carries one, in `event`.
  */
 export function extractEventName(body: IDataObject | undefined): string | undefined {
 	const event = body?.event;
@@ -72,7 +71,58 @@ export function extractEventName(body: IDataObject | undefined): string | undefi
 	return typeof event === 'string' && event !== '' ? event : undefined;
 }
 
-/** Empty selection means "every event", matching how n8n treats unset filters. */
+/** Envelope statuses that correspond to an event this node offers. */
+const ENVELOPE_STATUS_EVENTS: Record<string, string> = {
+	completed: 'envelope-completed',
+	declined: 'envelope-declined',
+	delivered: 'envelope-delivered',
+	sent: 'envelope-sent',
+	voided: 'envelope-voided',
+};
+
+/** The places a Connect payload can carry an envelope status, newest layout first. */
+function collectEnvelopeStatuses(body: IDataObject | undefined): string[] {
+	const data = body?.data as IDataObject | undefined;
+	const summary = data?.envelopeSummary as IDataObject | undefined;
+	const legacy = body?.envelopeStatus as IDataObject | undefined;
+
+	return [summary?.status, legacy?.status, body?.status].filter(
+		(status): status is string => typeof status === 'string' && status !== '',
+	);
+}
+
+/**
+ * Derives the event name from the envelope status, for the Connect formats that
+ * carry no `event` field.
+ *
+ * Only statuses matching an event this node offers are mapped - anything else
+ * stays undefined rather than inventing an event nobody could have selected.
+ */
+export function deriveEventName(body: IDataObject | undefined): string | undefined {
+	for (const status of collectEnvelopeStatuses(body)) {
+		const event = ENVELOPE_STATUS_EVENTS[status.trim().toLowerCase()];
+
+		if (event !== undefined) {
+			return event;
+		}
+	}
+
+	return undefined;
+}
+
+/** The event a payload stands for, named outright or derived from its status. */
+export function resolveEventName(body: IDataObject | undefined): string | undefined {
+	return extractEventName(body) ?? deriveEventName(body);
+}
+
+/**
+ * Empty selection means "every event", matching how n8n treats unset filters.
+ *
+ * A payload whose event cannot be determined at all passes too. Dropping it
+ * would be the stricter reading of the filter, but a webhook that vanishes
+ * without an execution is far harder to diagnose than one event too many, so
+ * the Events field says this outright.
+ */
 export function matchesEvents(eventName: string | undefined, selectedEvents: string[]): boolean {
 	if (selectedEvents.length === 0) {
 		return true;

@@ -21,9 +21,9 @@ import {
 import {
 	buildConnectConfigurations,
 	extractEnvelopeId,
-	extractEventName,
 	findConfigurationsForUrl,
 	matchesEvents,
+	resolveEventName,
 	verifyHmacSignature,
 } from './helpers';
 
@@ -206,7 +206,7 @@ export class DocusignTrigger implements INodeType {
 				],
 				default: ['envelope-completed'],
 				description:
-					'Events this workflow reacts to. In manual mode Docusign still delivers everything the configuration subscribes to, and anything not selected here is acknowledged and ignored. Leave empty to accept every event.',
+					'Events this workflow reacts to. In manual mode Docusign still delivers everything the configuration subscribes to, and anything not selected here is acknowledged and ignored. Leave empty to accept every event. Older Connect formats name no event; the envelope status is used instead, and a payload whose event cannot be determined at all is passed on rather than dropped.',
 			},
 			{
 				displayName: 'Verify HMAC Signature',
@@ -472,7 +472,7 @@ export class DocusignTrigger implements INodeType {
 			}
 		}
 
-		const eventName = extractEventName(body);
+		const eventName = resolveEventName(body);
 
 		if (!matchesEvents(eventName, events)) {
 			// Acknowledged so Docusign stops retrying, but no execution starts.

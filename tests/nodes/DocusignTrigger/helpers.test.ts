@@ -5,10 +5,12 @@ import {
 	buildConnectConfigurations,
 	collectSignatures,
 	computeSignature,
+	deriveEventName,
 	extractEnvelopeId,
 	extractEventName,
 	findConfigurationsForUrl,
 	matchesEvents,
+	resolveEventName,
 	verifyHmacSignature,
 } from '../../../nodes/DocusignTrigger/helpers';
 import connectPayload from '../../fixtures/connect-envelope-completed.json';
@@ -307,5 +309,75 @@ describe('findConfigurationsForUrl', () => {
 
 	it('returns nothing for an empty list', () => {
 		expect(findConfigurationsForUrl([], url)).toEqual([]);
+	});
+});
+
+describe('deriveEventName', () => {
+	it('reads the status of the current payload layout', () => {
+		expect(deriveEventName(connectPayload)).toBe('envelope-completed');
+	});
+
+	it('reads the status of the legacy envelopeStatus layout', () => {
+		expect(deriveEventName({ envelopeStatus: { status: 'Voided' } })).toBe('envelope-voided');
+	});
+
+	it('reads a top-level status', () => {
+		expect(deriveEventName({ status: 'declined' })).toBe('envelope-declined');
+	});
+
+	it('ignores case and surrounding whitespace', () => {
+		expect(deriveEventName({ status: '  SENT ' })).toBe('envelope-sent');
+	});
+
+	it('maps every status the node offers as an envelope event', () => {
+		const events = ['completed', 'declined', 'delivered', 'sent', 'voided'].map((status) =>
+			deriveEventName({ status }),
+		);
+
+		expect(events).toEqual([
+			'envelope-completed',
+			'envelope-declined',
+			'envelope-delivered',
+			'envelope-sent',
+			'envelope-voided',
+		]);
+	});
+
+	it('invents nothing for a status that is not an offered event', () => {
+		expect(deriveEventName({ status: 'created' })).toBeUndefined();
+		expect(deriveEventName({ status: 'signed' })).toBeUndefined();
+	});
+
+	it('returns undefined when there is no status at all', () => {
+		expect(deriveEventName({ envelopeId: 'env-1' })).toBeUndefined();
+		expect(deriveEventName(undefined)).toBeUndefined();
+	});
+});
+
+describe('resolveEventName', () => {
+	it('prefers the event field over the status', () => {
+		expect(resolveEventName({ event: 'recipient-sent', status: 'completed' })).toBe(
+			'recipient-sent',
+		);
+	});
+
+	it('falls back to the status when no event is named', () => {
+		expect(resolveEventName({ envelopeStatus: { status: 'Completed' } })).toBe(
+			'envelope-completed',
+		);
+	});
+
+	it('stays undefined when neither is usable, so the filter lets the payload through', () => {
+		const body = { envelopeId: 'env-1' };
+
+		expect(resolveEventName(body)).toBeUndefined();
+		expect(matchesEvents(resolveEventName(body), ['envelope-completed'])).toBe(true);
+	});
+
+	it('filters a legacy payload by its derived event, which it could not do before', () => {
+		const voided = { envelopeStatus: { status: 'Voided' } };
+
+		expect(matchesEvents(resolveEventName(voided), ['envelope-completed'])).toBe(false);
+		expect(matchesEvents(resolveEventName(voided), ['envelope-voided'])).toBe(true);
 	});
 });
