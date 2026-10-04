@@ -1,0 +1,9 @@
+export { accountFields, accountOperations } from './AccountDescription';
+export { customFieldFields, customFieldOperations } from './CustomFieldDescription';
+export { documentFields, documentOperations } from './DocumentDescription';
+export { envelopeFields, envelopeOperations } from './EnvelopeDescription';
+export { envelopeViewFields, envelopeViewOperations } from './EnvelopeViewDescription';
+export { folderFields, folderOperations } from './FolderDescription';
+export { recipientFields, recipientOperations } from './RecipientDescription';
+export { templateFields, templateOperations } from './TemplateDescription';
+export { userFields, userOperations } from './UserDescription';

@@ -1,0 +1,323 @@
+import { http, HttpResponse } from 'msw';
+import type { IExecuteFunctions } from 'n8n-workflow';
+import { describe, expect, it } from 'vitest';
+
+import { Docusign } from '../../nodes/Docusign/Docusign.node';
+import userInfoFixture from '../fixtures/userinfo.json';
+import { createExecuteFunctions, type MockContextOptions } from '../helpers/mockContexts';
+import {
+	ACCOUNT_ID,
+	API_BASE_URL,
+	createFetchingRequestHandler,
+	DEMO_OAUTH_BASE,
+	mswServer,
+} from '../helpers/msw';
+
+/**
+ * These tests drive the node through a real HTTP layer intercepted by msw, so
+ * query serialisation, status handling and binary decoding are exercised for
+ * real rather than asserted against a recorded call object.
+ */
+const node = new Docusign();
+
+function run(options: MockContextOptions) {
+	const ctx = createExecuteFunctions({
+		requestHandler: createFetchingRequestHandler(),
+		...options,
+	});
+
+	return { ctx, result: node.execute.call(ctx as unknown as IExecuteFunctions) };
+}
+
+describe('envelope creation end to end', () => {
+	it('resolves the account through userinfo and posts the envelope there', async () => {
+		let receivedBody: unknown;
+
+		mswServer.use(
+			http.get(`${DEMO_OAUTH_BASE}/oauth/userinfo`, () => HttpResponse.json(userInfoFixture)),
+			http.post(`${API_BASE_URL}/envelopes`, async ({ request }) => {
+				receivedBody = await request.json();
+
+				return HttpResponse.json({ envelopeId: 'created-1', status: 'sent' }, { status: 201 });
+			}),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'envelope',
+				operation: 'create',
+				source: 'documents',
+				emailSubject: 'Please sign',
+				envelopeStatus: 'sent',
+				binaryPropertyNames: 'data',
+				signersUi: { signer: [{ name: 'Ada', email: 'ada@example.com' }] },
+				additionalFields: { emailBlurb: 'Thanks' },
+			},
+			credentials: { docusignOAuth2Api: { environment: 'demo' } },
+			binary: { data: { buffer: Buffer.from('%PDF'), meta: { fileName: 'c.pdf' } } },
+		});
+
+		const output = await result;
+
+		expect(output[0][0].json).toEqual({ envelopeId: 'created-1', status: 'sent' });
+		expect(receivedBody).toMatchObject({
+			emailSubject: 'Please sign',
+			emailBlurb: 'Thanks',
+			status: 'sent',
+		});
+	});
+});
+
+describe('pagination end to end', () => {
+	it('follows nextUri across three real responses', async () => {
+		const requestedUrls: string[] = [];
+
+		mswServer.use(
+			http.get(`${API_BASE_URL}/envelopes`, ({ request }) => {
+				const url = new URL(request.url);
+				requestedUrls.push(url.pathname + url.search);
+				const start = Number(url.searchParams.get('start_position') ?? '0');
+
+				if (start === 0) {
+					return HttpResponse.json({
+						envelopes: [{ envelopeId: 'a' }, { envelopeId: 'b' }],
+						resultSetSize: 2,
+						totalSetSize: 5,
+						nextUri: `/restapi/v2.1/accounts/${ACCOUNT_ID}/envelopes?start_position=2`,
+					});
+				}
+
+				if (start === 2) {
+					return HttpResponse.json({
+						envelopes: [{ envelopeId: 'c' }, { envelopeId: 'd' }],
+						resultSetSize: 2,
+						totalSetSize: 5,
+						nextUri: `/restapi/v2.1/accounts/${ACCOUNT_ID}/envelopes?start_position=4`,
+					});
+				}
+
+				return HttpResponse.json({
+					envelopes: [{ envelopeId: 'e' }],
+					resultSetSize: 1,
+					totalSetSize: 5,
+				});
+			}),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'envelope',
+				operation: 'getAll',
+				returnAll: true,
+				filters: { status: ['completed'] },
+				options: {},
+			},
+		});
+
+		const output = await result;
+
+		expect(output[0].map((item) => item.json.envelopeId)).toEqual(['a', 'b', 'c', 'd', 'e']);
+		expect(requestedUrls).toHaveLength(3);
+		// The first request carries our filters; later ones follow the server's URI.
+		expect(requestedUrls[0]).toContain('status=completed');
+		expect(requestedUrls[0]).toContain('from_date=');
+		expect(requestedUrls[2]).toContain('start_position=4');
+	});
+
+	it('stops at the limit without fetching the next page', async () => {
+		let calls = 0;
+
+		mswServer.use(
+			http.get(`${API_BASE_URL}/users`, () => {
+				calls += 1;
+
+				return HttpResponse.json({
+					users: [{ userId: '1' }, { userId: '2' }, { userId: '3' }],
+					resultSetSize: 3,
+					totalSetSize: 50,
+					nextUri: `/restapi/v2.1/accounts/${ACCOUNT_ID}/users?start_position=3`,
+				});
+			}),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'user',
+				operation: 'getAll',
+				returnAll: false,
+				limit: 2,
+				filters: {},
+				options: {},
+			},
+		});
+
+		const output = await result;
+
+		expect(output[0]).toHaveLength(2);
+		expect(calls).toBe(1);
+	});
+});
+
+describe('binary download end to end', () => {
+	it('decodes the PDF and reads the file name from the response header', async () => {
+		const pdf = Buffer.from('%PDF-1.7 real bytes \0\u00ff');
+
+		mswServer.use(
+			http.get(`${API_BASE_URL}/envelopes/env-1/documents/combined`, () =>
+				HttpResponse.arrayBuffer(
+					pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength),
+					{
+						headers: {
+							'content-type': 'application/pdf',
+							'content-disposition': 'attachment; filename="Signed Contract.pdf"',
+						},
+					},
+				),
+			),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'document',
+				operation: 'download',
+				envelopeId: 'env-1',
+				documentId: 'combined',
+				binaryPropertyName: 'data',
+				options: {},
+			},
+		});
+
+		const output = await result;
+		const binary = output[0][0].binary?.data;
+
+		expect(binary?.fileName).toBe('Signed Contract.pdf');
+		expect(binary?.mimeType).toBe('application/pdf');
+		expect(Buffer.from(binary?.data ?? '', 'base64').equals(pdf)).toBe(true);
+	});
+});
+
+describe('error handling end to end', () => {
+	it.each([
+		[400, 'INVALID_REQUEST_PARAMETER', /INVALID_REQUEST_PARAMETER/],
+		[401, 'USER_AUTHENTICATION_FAILED', /USER_AUTHENTICATION_FAILED/],
+		[403, 'USER_LACKS_PERMISSIONS', /USER_LACKS_PERMISSIONS/],
+		[404, 'ENVELOPE_DOES_NOT_EXIST', /ENVELOPE_DOES_NOT_EXIST/],
+	])('surfaces a %i response as a NodeApiError naming %s', async (status, errorCode, pattern) => {
+		mswServer.use(
+			http.get(`${API_BASE_URL}/envelopes/env-1`, () =>
+				HttpResponse.json({ errorCode, message: 'Docusign says no.' }, { status }),
+			),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'envelope',
+				operation: 'get',
+				envelopeId: 'env-1',
+				options: {},
+			},
+		});
+
+		await expect(result).rejects.toThrow(pattern);
+	});
+
+	it('handles a rate limit response without losing the message', async () => {
+		mswServer.use(
+			http.get(`${API_BASE_URL}/envelopes/env-1`, () =>
+				HttpResponse.json(
+					{ errorCode: 'HOURLY_APIINVOCATION_LIMIT_EXCEEDED', message: 'Slow down.' },
+					{ status: 429 },
+				),
+			),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'envelope',
+				operation: 'get',
+				envelopeId: 'env-1',
+				options: {},
+			},
+		});
+
+		await expect(result).rejects.toThrow(/HOURLY_APIINVOCATION_LIMIT_EXCEEDED/);
+	});
+
+	it('does not abort the whole run when continueOnFail is set', async () => {
+		let call = 0;
+
+		mswServer.use(
+			http.get(`${API_BASE_URL}/envelopes/env-1`, () => {
+				call += 1;
+
+				return call === 1
+					? HttpResponse.json(
+							{ errorCode: 'ENVELOPE_DOES_NOT_EXIST', message: 'Gone.' },
+							{ status: 404 },
+						)
+					: HttpResponse.json({ envelopeId: 'env-1', status: 'sent' });
+			}),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'envelope',
+				operation: 'get',
+				envelopeId: 'env-1',
+				options: {},
+			},
+			items: [{ json: {} }, { json: {} }],
+			continueOnFail: true,
+		});
+
+		const output = await result;
+
+		expect(output[0]).toHaveLength(2);
+		expect(output[0][0].json.error).toMatch(/ENVELOPE_DOES_NOT_EXIST/);
+		expect(output[0][1].json.status).toBe('sent');
+	});
+});
+
+describe('query serialisation end to end', () => {
+	it('sends comma-separated lists and omits empty filters', async () => {
+		let search = '';
+
+		mswServer.use(
+			http.get(`${API_BASE_URL}/envelopes`, ({ request }) => {
+				search = new URL(request.url).search;
+
+				return HttpResponse.json({ envelopes: [], resultSetSize: 0, totalSetSize: 0 });
+			}),
+		);
+
+		const { result } = run({
+			parameters: {
+				authentication: 'oAuth2',
+				resource: 'envelope',
+				operation: 'getAll',
+				returnAll: true,
+				filters: {
+					status: ['sent', 'completed'],
+					searchText: '',
+					fromDate: '2026-01-01T00:00:00.000Z',
+				},
+				options: { include: ['recipients', 'documents'] },
+			},
+		});
+
+		await result;
+
+		const params = new URLSearchParams(search);
+		expect(params.get('status')).toBe('sent,completed');
+		expect(params.get('include')).toBe('recipients,documents');
+		expect(params.get('from_date')).toBe('2026-01-01T00:00:00.000Z');
+		expect(params.has('search_text')).toBe(false);
+	});
+});

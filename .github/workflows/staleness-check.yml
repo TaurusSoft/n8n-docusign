@@ -1,0 +1,13 @@
+name: Staleness Check
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # every Monday
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    uses: TaurusSoft/.github/.github/workflows/n8n-staleness-check.yml@v1
+    permissions:
+      contents: read
+      issues: write

@@ -1,0 +1,64 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Required for npm provenance, which n8n mandates for verified
+      # community nodes from 1 May 2026.
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (including tests)
+        run: npm run typecheck
+
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify the files declared in package.json exist in dist
+        run: node scripts/verify-dist.mjs
+
+      - name: Check the tag matches the package version
+        if: github.ref_type == 'tag'
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "Tag $TAG does not match package.json version $VERSION" >&2
+            exit 1
+          fi
+
+      # `n8n-node release` detects GITHUB_ACTIONS and switches to its publish
+      # path: it runs lint and build, then `npm publish` with provenance and
+      # RELEASE_MODE set. RELEASE_MODE is what lets the package's own
+      # prepublishOnly guard through, so a plain `npm publish` here would fail.
+      - name: Publish with provenance
+        run: npm run release
+        env:
+          # Prefer npm Trusted Publishing for this repository. NPM_TOKEN is only
+          # the fallback and may be left unset once trusted publishing is on.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

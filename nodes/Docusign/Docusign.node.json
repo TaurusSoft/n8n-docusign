@@ -1,0 +1,18 @@
+{
+	"node": "@taurussoftware/n8n-nodes-docusign.docusign",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Productivity", "Sales"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://developers.docusign.com/platform/auth/"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/TaurusSoft/n8n-docusign#readme"
+			}
+		]
+	}
+}
