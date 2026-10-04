@@ -163,10 +163,14 @@ describe('applyAdditionalFields', () => {
 	it('builds a reminder notification and defaults the missing half', () => {
 		const definition = applyAdditionalFields({}, { reminderDelay: 5 });
 
+		// Deliberate: Docusign has no way to override reminders while keeping the
+		// account's expiration policy, so reminders alone leave the envelope with
+		// no expiration at all. The field descriptions say so.
 		expect(definition.notification).toEqual({
 			useAccountDefaults: 'false',
 			reminders: { reminderEnabled: 'true', reminderDelay: '5', reminderFrequency: '3' },
 		});
+		expect(definition.notification).not.toHaveProperty('expirations');
 	});
 
 	it('combines expiration and reminders in one notification block', () => {

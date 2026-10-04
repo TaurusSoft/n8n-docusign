@@ -270,6 +270,7 @@ The package has no runtime dependencies.
 | `ENVELOPE_DOES_NOT_EXIST` for an envelope you can see in the UI | The credential points at the other environment. Demo and production are separate accounts — check **Environment**. |
 | `consent_required` on a JWT credential | Consent has not been granted for the impersonated user. Set **Consent Redirect URI** to a Redirect URI registered for the app, then run the operation once: the error message contains the exact URL to open. |
 | `USER_LACKS_PERMISSIONS` | The operation needs an account administrator. This affects all Connect endpoints and most account-wide operations. |
+| Envelope ignores the account expiration policy | **Reminder Delay** or **Reminder Frequency** was set without **Expire After**. Any notification setting takes the envelope off the account defaults entirely, so set both. |
 | Credential worked for weeks, then stopped | An OAuth2 refresh token expires after 30 days without use. Reconnect the credential, and switch to JWT for workflows that run rarely. |
 | Trigger answers 401 for every webhook | The HMAC secret in n8n does not match the one on the Connect configuration, or the configuration sends XML rather than JSON. |
 | Trigger never fires | The Connect configuration points at the Test URL while the workflow is active, or the events you selected live in a Custom Recipient configuration you have not created. |

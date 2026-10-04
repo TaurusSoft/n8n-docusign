@@ -309,7 +309,8 @@ export const envelopeFields: INodeProperties[] = [
 					minValue: 1,
 				},
 				default: 30,
-				description: 'Number of days after which an unsigned envelope expires',
+				description:
+					'Number of days after which an unsigned envelope expires. Setting this or a reminder takes the envelope off the account notification defaults, so set both if the envelope needs both.',
 			},
 			{
 				displayName: 'Reminder Delay (Days)',
@@ -319,7 +320,8 @@ export const envelopeFields: INodeProperties[] = [
 					minValue: 1,
 				},
 				default: 3,
-				description: 'Days to wait before the first reminder is sent',
+				description:
+					'Days to wait before the first reminder is sent. Reminders take the envelope off the account notification defaults, including its expiration policy: add Expire After to keep one.',
 			},
 			{
 				displayName: 'Reminder Frequency (Days)',
@@ -329,7 +331,8 @@ export const envelopeFields: INodeProperties[] = [
 					minValue: 1,
 				},
 				default: 3,
-				description: 'Days between reminders',
+				description:
+					'Days between reminders. Reminders take the envelope off the account notification defaults, including its expiration policy: add Expire After to keep one.',
 			},
 		],
 	},

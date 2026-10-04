@@ -39,6 +39,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   field supplies a registered one; left empty, the message says what to register instead of naming a
   URL that fails.
 
+### Changed
+
+- The **Expire After**, **Reminder Delay** and **Reminder Frequency** descriptions now state that any
+  notification setting takes the envelope off the account notification defaults entirely. Reminders
+  without **Expire After** therefore leave the envelope with no expiration policy, which Docusign
+  gives no way to avoid.
+
 ## [0.1.0] - 2026-09-18
 
 Initial release.

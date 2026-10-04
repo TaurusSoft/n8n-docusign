@@ -137,6 +137,10 @@ export function applyAdditionalFields(
 	const hasReminders =
 		additionalFields.reminderDelay !== undefined || additionalFields.reminderFrequency !== undefined;
 
+	// `useAccountDefaults: false` is all or nothing: whatever this block leaves
+	// out does not fall back to the account, it simply does not apply to the
+	// envelope. Reminders alone therefore drop the expiration policy, which the
+	// field descriptions spell out - Docusign offers no way to override one half.
 	if (hasExpiration || hasReminders) {
 		const notification: IDataObject = { useAccountDefaults: 'false' };
 
