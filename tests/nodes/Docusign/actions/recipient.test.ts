@@ -104,16 +104,110 @@ describe('recipient: add', () => {
 				signersUi: { signer: [{ name: 'Ada', email: 'ada@example.com' }] },
 				options: {},
 			},
-			responses: [{ recipientUpdateResults: [] }],
+			responses: [{ signers: [] }, { recipientUpdateResults: [] }],
 		});
 
 		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
 
-		expect(ctx.requests[0].options.method).toBe('POST');
-		expect(ctx.requests[0].options.url).toBe(RECIPIENTS_URL);
-		expect(ctx.requests[0].options.body).toMatchObject({
+		expect(ctx.requests[1].options.method).toBe('POST');
+		expect(ctx.requests[1].options.url).toBe(RECIPIENTS_URL);
+		expect(ctx.requests[1].options.body).toMatchObject({
 			signers: [{ name: 'Ada', email: 'ada@example.com', recipientId: '1' }],
 		});
+	});
+
+	it('numbers new recipients above the IDs the envelope already uses', async () => {
+		const ctx = createExecuteFunctions({
+			parameters: {
+				envelopeId: ENVELOPE_ID,
+				signersUi: {
+					signer: [
+						{ name: 'Ada', email: 'ada@example.com' },
+						{ name: 'Linus', email: 'linus@example.com' },
+					],
+				},
+				options: {},
+			},
+			responses: [
+				{
+					signers: [{ recipientId: '1' }, { recipientId: '4' }],
+					carbonCopies: [{ recipientId: '7' }],
+				},
+				{},
+			],
+		});
+
+		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
+
+		expect(ctx.requests[0].options.method).toBe('GET');
+		expect(ctx.requests[1].options.body).toMatchObject({
+			signers: [{ recipientId: '8' }, { recipientId: '9' }],
+		});
+	});
+
+	it('starts at 1 on an envelope that has no recipients yet', async () => {
+		const ctx = createExecuteFunctions({
+			parameters: {
+				envelopeId: ENVELOPE_ID,
+				signersUi: { signer: [{ name: 'Ada', email: 'ada@example.com' }] },
+				options: {},
+			},
+			responses: [{ recipientCount: '0' }, {}],
+		});
+
+		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
+
+		expect(ctx.requests[1].options.body).toMatchObject({ signers: [{ recipientId: '1' }] });
+	});
+
+	it('ignores recipient IDs that are not numbers when looking for a free one', async () => {
+		const ctx = createExecuteFunctions({
+			parameters: {
+				envelopeId: ENVELOPE_ID,
+				signersUi: { signer: [{ name: 'Ada', email: 'ada@example.com' }] },
+				options: {},
+			},
+			responses: [{ signers: [{ recipientId: 'abc' }, { recipientId: '2' }] }, {}],
+		});
+
+		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
+
+		expect(ctx.requests[1].options.body).toMatchObject({ signers: [{ recipientId: '3' }] });
+	});
+
+	it('skips the lookup when the first recipient ID is pinned', async () => {
+		const ctx = createExecuteFunctions({
+			parameters: {
+				envelopeId: ENVELOPE_ID,
+				signersUi: { signer: [{ name: 'Ada', email: 'ada@example.com' }] },
+				options: { startRecipientId: 5 },
+			},
+			responses: [{}],
+		});
+
+		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
+
+		expect(ctx.requests).toHaveLength(1);
+		expect(ctx.requests[0].options.method).toBe('POST');
+		expect(ctx.requests[0].options.body).toMatchObject({ signers: [{ recipientId: '5' }] });
+	});
+
+	it('skips the lookup when every recipient carries its own ID', async () => {
+		const ctx = createExecuteFunctions({
+			parameters: {
+				envelopeId: ENVELOPE_ID,
+				signersUi: {
+					signer: [{ name: 'Ada', email: 'ada@example.com', recipientId: '42' }],
+				},
+				options: {},
+			},
+			responses: [{}],
+		});
+
+		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
+
+		expect(ctx.requests).toHaveLength(1);
+		expect(ctx.requests[0].options.body).toMatchObject({ signers: [{ recipientId: '42' }] });
 	});
 
 	it('adds the resend flag only when requested', async () => {
@@ -123,12 +217,12 @@ describe('recipient: add', () => {
 				signersUi: { signer: [{ name: 'A', email: 'a@e.com' }] },
 				options: { resendEnvelope: true },
 			},
-			responses: [{}],
+			responses: [{ signers: [] }, {}],
 		});
 
 		await recipientOperationHandlers.add(ctx, 0, testDocusignContext);
 
-		expect(ctx.requests[0].options.qs).toEqual({ resend_envelope: true });
+		expect(ctx.requests[1].options.qs).toEqual({ resend_envelope: true });
 	});
 
 	it('sends an empty signer list rather than failing when none were configured', async () => {

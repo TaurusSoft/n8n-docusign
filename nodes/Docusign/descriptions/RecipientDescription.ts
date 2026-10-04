@@ -194,6 +194,22 @@ export const recipientFields: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'First Recipient ID',
+				name: 'startRecipientId',
+				type: 'number',
+				typeOptions: {
+					minValue: 1,
+				},
+				default: 1,
+				displayOptions: {
+					show: {
+						operation: ['add'],
+					},
+				},
+				description:
+					'ID given to the first recipient added, incremented for each following one. Leave this out to continue after the highest ID the envelope already uses; setting it to an ID that is taken overwrites that recipient.',
+			},
+			{
 				displayName: 'Resend Envelope',
 				name: 'resendEnvelope',
 				type: 'boolean',

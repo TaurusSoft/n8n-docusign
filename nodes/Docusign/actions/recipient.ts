@@ -1,8 +1,9 @@
-import type { IDataObject } from 'n8n-workflow';
+import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import type { SignerInput } from '../EnvelopeDefinition';
 import { buildSigners } from '../EnvelopeDefinition';
+import type { DocusignContext } from '../GenericFunctions';
 import { docusignApiRequest } from '../GenericFunctions';
 import {
 	RECIPIENT_TYPES,
@@ -43,10 +44,53 @@ const getAll: OperationHandler = async (ctx, itemIndex, context) => {
 	return jsonItems(recipients ?? response, itemIndex);
 };
 
+/**
+ * The lowest recipient ID that is still free on the envelope.
+ *
+ * Recipient IDs are unique per envelope, and Docusign's POST does not allocate
+ * them: it takes whatever the request names. Numbering new recipients from 1
+ * therefore walks straight into the IDs the envelope already uses.
+ */
+async function nextFreeRecipientId(
+	ctx: IExecuteFunctions,
+	context: DocusignContext,
+	envelopeId: string,
+): Promise<number> {
+	const response = (await docusignApiRequest(
+		ctx,
+		context,
+		'GET',
+		`/envelopes/${envelopeId}/recipients`,
+	)) as IDataObject;
+
+	const highest = (flattenRecipients(response) ?? []).reduce((max, recipient) => {
+		const id = Number.parseInt(String(recipient.recipientId ?? ''), 10);
+
+		return Number.isNaN(id) ? max : Math.max(max, id);
+	}, 0);
+
+	return highest + 1;
+}
+
 const add: OperationHandler = async (ctx, itemIndex, context) => {
 	const envelopeId = ctx.getNodeParameter('envelopeId', itemIndex) as string;
 	const signersUi = ctx.getNodeParameter('signersUi', itemIndex, {}) as { signer?: SignerInput[] };
-	const options = ctx.getNodeParameter('options', itemIndex, {}) as { resendEnvelope?: boolean };
+	const options = ctx.getNodeParameter('options', itemIndex, {}) as {
+		resendEnvelope?: boolean;
+		startRecipientId?: number;
+	};
+
+	const signers = signersUi.signer ?? [];
+
+	// Only recipients without an explicit ID need numbering, and only then is
+	// the extra lookup worth a round trip.
+	const needsNumbering = signers.some(
+		(signer) => signer.recipientId === undefined || signer.recipientId === '',
+	);
+
+	const startRecipientId =
+		options.startRecipientId ??
+		(needsNumbering ? await nextFreeRecipientId(ctx, context, envelopeId) : 1);
 
 	const qs: IDataObject = {};
 	if (options.resendEnvelope === true) {
@@ -58,7 +102,7 @@ const add: OperationHandler = async (ctx, itemIndex, context) => {
 		context,
 		'POST',
 		`/envelopes/${envelopeId}/recipients`,
-		{ signers: buildSigners(signersUi.signer ?? []) },
+		{ signers: buildSigners(signers, startRecipientId) },
 		qs,
 	)) as IDataObject;
 

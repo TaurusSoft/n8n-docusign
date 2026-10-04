@@ -15,6 +15,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `Envelope Recipient: Update` always wrote to the `signers` group, so updating a carbon copy,
   certified delivery or in-person signer changed an unrelated recipient. The new **Recipient Type**
   field selects the group, and an unknown value fails the item instead of guessing.
+- `Envelope Recipient: Add` numbered recipients from 1, colliding with the IDs an envelope already
+  used. It now continues after the highest existing ID, looked up only when a recipient has no ID of
+  its own. The new **First Recipient ID** option pins the numbering explicitly.
 
 ## [0.1.0] - 2026-09-18
 

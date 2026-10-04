@@ -148,6 +148,10 @@ witnesses, notaries and seals — and tags each one with `recipientType`. `Updat
 as **Recipient Type**: it decides which group the change is written to, so feeding the value from
 `Get Many` straight into it keeps the right recipient selected.
 
+`Add` numbers new recipients after the highest recipient ID the envelope already uses, because
+Docusign does not allocate those IDs itself. Set **First Recipient ID** to number from a fixed value
+instead — useful to replace a specific recipient, at the cost of having to know the envelope.
+
 ### Envelope Custom Field
 
 Get Many, Create, Update, Delete — for both text and list custom fields.
