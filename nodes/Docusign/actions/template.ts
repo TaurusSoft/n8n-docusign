@@ -1,6 +1,7 @@
 import type { IDataObject } from 'n8n-workflow';
 
 import { docusignApiRequest, docusignApiRequestAllItems } from '../GenericFunctions';
+import { flattenRecipients } from '../RecipientCollections';
 import { jsonItems, splitList } from './helpers';
 import type { OperationHandler } from './helpers';
 
@@ -94,11 +95,9 @@ const getRecipients: OperationHandler = async (ctx, itemIndex, context) => {
 		`/templates/${templateId}/recipients`,
 	)) as IDataObject;
 
-	const signers = (response?.signers as IDataObject[] | undefined) ?? [];
-	const carbonCopies = (response?.carbonCopies as IDataObject[] | undefined) ?? [];
-	const recipients = [...signers, ...carbonCopies];
+	const recipients = flattenRecipients(response);
 
-	return jsonItems(recipients.length > 0 ? recipients : response, itemIndex);
+	return jsonItems(recipients ?? response, itemIndex);
 };
 
 export const templateOperationHandlers: Record<string, OperationHandler> = {

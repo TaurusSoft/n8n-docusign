@@ -104,6 +104,32 @@ export const recipientFields: INodeProperties[] = [
 		description: 'ID of the recipient within the envelope',
 	},
 	{
+		displayName: 'Recipient Type',
+		name: 'recipientType',
+		type: 'options',
+		displayOptions: {
+			show: {
+				resource: ['recipient'],
+				operation: ['update'],
+			},
+		},
+		options: [
+			{ name: 'Agent', value: 'agent' },
+			{ name: 'Carbon Copy', value: 'carbonCopy' },
+			{ name: 'Certified Delivery', value: 'certifiedDelivery' },
+			{ name: 'Editor', value: 'editor' },
+			{ name: 'In Person Signer', value: 'inPersonSigner' },
+			{ name: 'Intermediary', value: 'intermediary' },
+			{ name: 'Notary', value: 'notary' },
+			{ name: 'Seal', value: 'seal' },
+			{ name: 'Signer', value: 'signer' },
+			{ name: 'Witness', value: 'witness' },
+		],
+		default: 'signer',
+		description:
+			'Role the recipient has in the envelope. Docusign keeps one list per role and identifies a recipient by the list it is in, so picking the wrong one updates an unrelated recipient. Get Many returns the matching value as recipientType.',
+	},
+	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
 		type: 'collection',

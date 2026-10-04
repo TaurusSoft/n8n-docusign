@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import packageJson from '../../../package.json';
 import { operationRegistry } from '../../../nodes/Docusign/actions';
+import { RECIPIENT_TYPES } from '../../../nodes/Docusign/RecipientCollections';
 import { Docusign } from '../../../nodes/Docusign/Docusign.node';
 import codex from '../../../nodes/Docusign/Docusign.node.json';
 
@@ -91,6 +92,20 @@ describe('Docusign node description', () => {
 				displayOptions: { show: { authentication: ['jwt'] } },
 			},
 		]);
+	});
+
+	it('offers exactly the recipient types the handlers can address', () => {
+		const property = properties.find((entry) => entry.name === 'recipientType') as INodeProperties;
+
+		expect([...optionValues(property)].sort()).toEqual([...RECIPIENT_TYPES].sort());
+		expect(property.default).toBe('signer');
+	});
+
+	it('lists the recipient type options alphabetically by name', () => {
+		const property = properties.find((entry) => entry.name === 'recipientType') as INodeProperties;
+		const names = (property.options as INodePropertyOptions[]).map((option) => option.name);
+
+		expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
 	});
 
 	it('lists the resource options alphabetically by name', () => {

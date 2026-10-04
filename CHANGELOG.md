@@ -7,6 +7,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `Envelope Recipient: Get Many` and `Template: Get Recipients` dropped recipients that were
+  neither signers, in-person signers, carbon copies nor certified deliveries. Both now return every
+  role Docusign can send, each tagged with `recipientType`.
+- `Envelope Recipient: Update` always wrote to the `signers` group, so updating a carbon copy,
+  certified delivery or in-person signer changed an unrelated recipient. The new **Recipient Type**
+  field selects the group, and an unknown value fails the item instead of guessing.
+
 ## [0.1.0] - 2026-09-18
 
 Initial release.

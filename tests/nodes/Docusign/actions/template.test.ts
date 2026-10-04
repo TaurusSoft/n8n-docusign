@@ -130,6 +130,30 @@ describe('template: getRecipients', () => {
 		expect(items.map((item) => item.json.roleName)).toEqual(['Signer 1', 'Watcher']);
 	});
 
+	it('includes the roles beyond signers and carbon copies', async () => {
+		const ctx = createExecuteFunctions({
+			parameters: { templateId: 'tpl-1' },
+			responses: [
+				{
+					signers: [{ roleName: 'Signer 1' }],
+					agents: [{ roleName: 'Agent' }],
+					certifiedDeliveries: [{ roleName: 'Archive' }],
+					editors: [{ roleName: 'Editor' }],
+				},
+			],
+		});
+
+		const items = await templateOperationHandlers.getRecipients(ctx, 0, testDocusignContext);
+
+		expect(items.map((item) => item.json.roleName).sort()).toEqual([
+			'Agent',
+			'Archive',
+			'Editor',
+			'Signer 1',
+		]);
+		expect(items.map((item) => item.json.recipientType)).toContain('agent');
+	});
+
 	it('falls back to the raw payload when empty', async () => {
 		const ctx = createExecuteFunctions({
 			parameters: { templateId: 'tpl-1' },

@@ -142,6 +142,12 @@ explicitly. Setting both **Account ID** and **Account Base URL** skips the looku
 Get Many, Add, Update, Delete — including routing order, embedded signing via Client User ID, and
 signature placement by anchor text or fixed coordinates.
 
+Docusign groups recipients by role rather than labelling them, so `Get Many` returns every role —
+signers, in-person signers, carbon copies, certified deliveries, agents, editors, intermediaries,
+witnesses, notaries and seals — and tags each one with `recipientType`. `Update` takes that value
+as **Recipient Type**: it decides which group the change is written to, so feeding the value from
+`Get Many` straight into it keeps the right recipient selected.
+
 ### Envelope Custom Field
 
 Get Many, Create, Update, Delete — for both text and list custom fields.
