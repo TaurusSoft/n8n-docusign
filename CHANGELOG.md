@@ -18,6 +18,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `Envelope Recipient: Add` numbered recipients from 1, colliding with the IDs an envelope already
   used. It now continues after the highest existing ID, looked up only when a recipient has no ID of
   its own. The new **First Recipient ID** option pins the numbering explicitly.
+- Deactivating a trigger whose static data had been lost reported success without removing the
+  Connect configuration, leaving it posting to a dead URL. `delete` now falls back to looking the
+  configuration up by webhook URL, the same way `checkExists` does.
 - The trigger answered HTTP 200 when an HMAC signature did not match, so Docusign counted the
   rejection as a delivered webhook: a wrong secret black-holed every event with nothing in the
   Connect failure log and no retry. It now answers 401.

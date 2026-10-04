@@ -30,6 +30,23 @@ import {
 /** Static data key holding the IDs of the configurations this node created. */
 const CONNECT_IDS_KEY = 'docusignConnectIds';
 
+/**
+ * IDs of the Connect configurations currently pointing at this node's webhook URL.
+ *
+ * The URL is the only handle on them that survives losing the static data.
+ */
+async function findConfigurationIdsForWebhook(
+	ctx: IHookFunctions,
+	context: DocusignContext,
+): Promise<string[]> {
+	const webhookUrl = ctx.getNodeWebhookUrl('default') as string;
+
+	const response = (await docusignApiRequest(ctx, context, 'GET', '/connect')) as IDataObject;
+	const configurations = (response?.configurations as IDataObject[] | undefined) ?? [];
+
+	return findConfigurationsForUrl(configurations, webhookUrl);
+}
+
 export class DocusignTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Docusign Trigger',
@@ -310,18 +327,8 @@ export class DocusignTrigger implements INodeType {
 					return true;
 				}
 
-				const webhookUrl = this.getNodeWebhookUrl('default') as string;
 				const context = await triggerApiContext(this);
-
-				const response = (await docusignApiRequest(
-					this,
-					context,
-					'GET',
-					'/connect',
-				)) as IDataObject;
-
-				const configurations = (response?.configurations as IDataObject[] | undefined) ?? [];
-				const matching = findConfigurationsForUrl(configurations, webhookUrl);
+				const matching = await findConfigurationIdsForWebhook(this, context);
 
 				if (matching.length === 0) {
 					return false;
@@ -386,16 +393,24 @@ export class DocusignTrigger implements INodeType {
 				const staticData = this.getWorkflowStaticData('node');
 				const connectIds = (staticData[CONNECT_IDS_KEY] as string[] | undefined) ?? [];
 
-				if (configurationMode !== 'automatic' || connectIds.length === 0) {
+				if (configurationMode !== 'automatic') {
 					delete staticData[CONNECT_IDS_KEY];
 
 					return true;
 				}
 
 				const context = await triggerApiContext(this);
+
+				// Static data does not survive everything - a re-imported workflow, a
+				// restored backup - and losing it would leave the configuration in
+				// Docusign posting to a URL that no longer runs anything. An empty list
+				// is indistinguishable from that case, so look the IDs up by URL.
+				const idsToRemove =
+					connectIds.length > 0 ? connectIds : await findConfigurationIdsForWebhook(this, context);
+
 				let allRemoved = true;
 
-				for (const connectId of connectIds) {
+				for (const connectId of idsToRemove) {
 					try {
 						await docusignApiRequest(this, context, 'DELETE', `/connect/${connectId}`);
 					} catch {

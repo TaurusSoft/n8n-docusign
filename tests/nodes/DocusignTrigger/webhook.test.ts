@@ -452,13 +452,48 @@ describe('DocusignTrigger webhook lifecycle in automatic mode', () => {
 		expect(ctx.staticData.docusignConnectIds).toBeUndefined();
 	});
 
-	it('does nothing on delete when no configuration was ever stored', async () => {
-		const ctx = autoCtx({ staticData: {} });
+	it('finds the configuration by URL when the static data no longer has its ID', async () => {
+		const ctx = autoCtx({
+			staticData: {},
+			responses: [
+				{
+					configurations: [
+						{ connectId: '7', urlToPublishTo: WEBHOOK_URL },
+						{ connectId: '8', urlToPublishTo: 'https://elsewhere.example.com/webhook' },
+					],
+				},
+				{},
+			],
+		});
 
-		await expect(
-			node.webhookMethods.default.delete.call(ctx as unknown as IHookFunctions),
-		).resolves.toBe(true);
-		expect(ctx.requests).toHaveLength(0);
+		const deleted = await node.webhookMethods.default.delete.call(
+			ctx as unknown as IHookFunctions,
+		);
+
+		expect(deleted).toBe(true);
+		expect(ctx.requests.map((request) => request.options.url)).toEqual([
+			`${API_BASE_URL}/connect`,
+			`${API_BASE_URL}/connect/7`,
+		]);
+	});
+
+	it('reports success when the lookup finds nothing left to delete', async () => {
+		const ctx = autoCtx({ staticData: {}, responses: [{ configurations: [] }] });
+
+		const deleted = await node.webhookMethods.default.delete.call(
+			ctx as unknown as IHookFunctions,
+		);
+
+		expect(deleted).toBe(true);
+		expect(ctx.requests.map((request) => request.options.method)).toEqual(['GET']);
+	});
+
+	it('trusts the stored IDs without a lookup when they are there', async () => {
+		const ctx = autoCtx({ staticData: { docusignConnectIds: ['3'] }, responses: [{}] });
+
+		await node.webhookMethods.default.delete.call(ctx as unknown as IHookFunctions);
+
+		expect(ctx.requests.map((request) => request.options.method)).toEqual(['DELETE']);
 	});
 
 	it('requires an API credential', async () => {
