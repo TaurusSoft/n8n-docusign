@@ -234,6 +234,28 @@ describe('docusignApiRequest', () => {
 		expect(ctx.requests[0].options.returnFullResponse).toBe(true);
 	});
 
+	it('does not ask for JSON on a binary download', async () => {
+		const ctx = createExecuteFunctions({ responses: [{ body: Buffer.from('x') }] });
+
+		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/doc', undefined, {}, {
+			encoding: 'arraybuffer',
+			returnFullResponse: true,
+		});
+
+		expect(ctx.requests[0].options.headers?.Accept).toBe('*/*');
+	});
+
+	it('lets a caller state the content type it expects', async () => {
+		const ctx = createExecuteFunctions({ responses: [{ body: Buffer.from('x') }] });
+
+		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/doc', undefined, {}, {
+			encoding: 'arraybuffer',
+			headers: { Accept: 'application/zip' },
+		});
+
+		expect(ctx.requests[0].options.headers?.Accept).toBe('application/zip');
+	});
+
 	it('merges extra headers', async () => {
 		const ctx = createExecuteFunctions({ responses: [{}] });
 

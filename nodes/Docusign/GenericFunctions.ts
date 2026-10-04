@@ -177,7 +177,9 @@ export async function docusignApiRequest(
 		method,
 		url: options.url ?? `${context.apiBaseUrl}${endpoint}`,
 		headers: {
-			Accept: 'application/json',
+			// A document download answers with a PDF or, for `archive`, a ZIP, so
+			// asking for JSON there is at best ignored and at worst honoured.
+			Accept: options.encoding === undefined ? 'application/json' : '*/*',
 			...(options.headers ?? {}),
 		},
 		json: options.encoding === undefined,

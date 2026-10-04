@@ -18,6 +18,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `Envelope Recipient: Add` numbered recipients from 1, colliding with the IDs an envelope already
   used. It now continues after the highest existing ID, looked up only when a recipient has no ID of
   its own. The new **First Recipient ID** option pins the numbering explicitly.
+- Document downloads sent `Accept: application/json` while expecting a PDF, or a ZIP for
+  `documentId=archive`. Binary requests now accept any content type.
 - The trigger ignored the event selection for Connect payloads that carry no `event` field, letting
   every one of them through. The event is now derived from the envelope status, so the filter works
   for those formats too. A payload whose event still cannot be determined is passed on rather than
