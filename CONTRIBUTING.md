@@ -30,6 +30,8 @@ npm test
 | `npm run build`         | Compile to `dist/` and copy icons and codex files     |
 | `npm run lint`          | Run the n8n community node linter                     |
 | `npm run lint:fix`      | Fix what the linter can fix automatically             |
+| `npm run format`        | Reformat everything with Prettier                     |
+| `npm run format:check`  | Check formatting without writing, as CI does          |
 | `npm test`              | Run the whole test suite                              |
 | `npm run test:watch`    | Re-run tests on change                                |
 | `npm run test:coverage` | Run tests and enforce coverage thresholds             |
@@ -135,7 +137,11 @@ the thresholds to make a change fit.
 
 ESLint and Prettier are configured through `@n8n/node-cli`, and the package runs in the linter's
 strict mode — **do not modify `eslint.config.mjs`**, or linting will refuse to run. Run
-`npm run lint:fix` before pushing.
+`npm run lint:fix` and `npm run format` before pushing.
+
+The linter does not check formatting, so CI runs `npm run format:check` separately and a formatting
+difference fails the build. Prettier reads its settings from `.prettierrc.js` and its exclusions
+from `.gitignore` plus `.prettierignore`.
 
 Two plugins run on top of the usual TypeScript rules: `eslint-plugin-n8n-nodes-base` (UI and naming
 conventions) and `@n8n/eslint-plugin-community-nodes` (packaging and correctness requirements).
