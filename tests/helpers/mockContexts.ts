@@ -104,9 +104,7 @@ function resolveParameter(
 
 	const value = parameters[name];
 
-	return typeof value === 'function'
-		? (value as (index: number) => unknown)(itemIndex)
-		: value;
+	return typeof value === 'function' ? (value as (index: number) => unknown)(itemIndex) : value;
 }
 
 function buildRequestHelper(options: MockContextOptions, recorded: RecordedRequest[]) {
@@ -204,7 +202,11 @@ export function createExecuteFunctions(
 		}),
 		continueOnFail: () => options.continueOnFail === true,
 		getWorkflowStaticData: () => staticData,
-		getWorkflow: () => ({ id: 'wf-1', name: options.workflowName ?? 'Test Workflow', active: true }),
+		getWorkflow: () => ({
+			id: 'wf-1',
+			name: options.workflowName ?? 'Test Workflow',
+			active: true,
+		}),
 		helpers: {
 			httpRequestWithAuthentication: buildRequestHelper(options, requests),
 			...buildBinaryHelpers(options),

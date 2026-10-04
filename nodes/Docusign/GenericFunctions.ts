@@ -18,11 +18,7 @@ import {
 } from '../../shared/docusign';
 
 export type DocusignContextFunctions =
-	| IExecuteFunctions
-	| ILoadOptionsFunctions
-	| IWebhookFunctions
-	| IHookFunctions;
-
+	IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions | IHookFunctions;
 
 /**
  * Everything an API call needs beyond the endpoint itself.
@@ -516,8 +512,7 @@ export async function responseToBinary(
 	const headers = response.headers ?? {};
 	const contentType = headerValue(headers['content-type']) ?? 'application/pdf';
 	const fileName =
-		fileNameFromContentDisposition(headerValue(headers['content-disposition'])) ??
-		fallbackFileName;
+		fileNameFromContentDisposition(headerValue(headers['content-disposition'])) ?? fallbackFileName;
 
 	const buffer = toBuffer(response.body);
 

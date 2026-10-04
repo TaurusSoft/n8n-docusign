@@ -135,7 +135,8 @@ export function applyAdditionalFields(
 
 	const hasExpiration = additionalFields.expireAfter !== undefined;
 	const hasReminders =
-		additionalFields.reminderDelay !== undefined || additionalFields.reminderFrequency !== undefined;
+		additionalFields.reminderDelay !== undefined ||
+		additionalFields.reminderFrequency !== undefined;
 
 	// `useAccountDefaults: false` is all or nothing: whatever this block leaves
 	// out does not fall back to the account, it simply does not apply to the
@@ -248,11 +249,9 @@ function parseEnvelopeDefinitionJson(ctx: IExecuteFunctions, itemIndex: number):
 	}
 
 	if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-		throw new NodeOperationError(
-			ctx.getNode(),
-			'The envelope definition must be a JSON object.',
-			{ itemIndex },
-		);
+		throw new NodeOperationError(ctx.getNode(), 'The envelope definition must be a JSON object.', {
+			itemIndex,
+		});
 	}
 
 	return parsed as IDataObject;

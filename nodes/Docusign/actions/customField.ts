@@ -16,7 +16,11 @@ function collectionForType(fieldType: string): 'textCustomFields' | 'listCustomF
 	return fieldType === 'list' ? 'listCustomFields' : 'textCustomFields';
 }
 
-function buildField(field: IDataObject, options: CustomFieldOptions, fieldType: string): IDataObject {
+function buildField(
+	field: IDataObject,
+	options: CustomFieldOptions,
+	fieldType: string,
+): IDataObject {
 	const result: IDataObject = { ...field };
 
 	if (options.required !== undefined) {

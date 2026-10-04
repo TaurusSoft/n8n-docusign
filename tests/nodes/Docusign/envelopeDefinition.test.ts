@@ -130,11 +130,14 @@ describe('buildTemplateRoles', () => {
 
 describe('applyAdditionalFields', () => {
 	it('stringifies booleans, which is what an envelope definition expects', () => {
-		const definition = applyAdditionalFields({}, {
-			allowReassign: false,
-			enableWetSign: true,
-			envelopeIdStamping: false,
-		});
+		const definition = applyAdditionalFields(
+			{},
+			{
+				allowReassign: false,
+				enableWetSign: true,
+				envelopeIdStamping: false,
+			},
+		);
 
 		expect(definition).toEqual({
 			allowReassign: 'false',
@@ -174,11 +177,14 @@ describe('applyAdditionalFields', () => {
 	});
 
 	it('combines expiration and reminders in one notification block', () => {
-		const definition = applyAdditionalFields({}, {
-			expireAfter: 10,
-			reminderDelay: 2,
-			reminderFrequency: 4,
-		});
+		const definition = applyAdditionalFields(
+			{},
+			{
+				expireAfter: 10,
+				reminderDelay: 2,
+				reminderFrequency: 4,
+			},
+		);
 		const notification = definition.notification as IDataObject;
 
 		expect(notification).toHaveProperty('expirations');

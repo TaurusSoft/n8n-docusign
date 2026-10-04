@@ -66,9 +66,9 @@ describe('verifyHmacSignature', () => {
 	const rawBody = Buffer.from(JSON.stringify(connectPayload), 'utf8');
 
 	it('accepts a matching signature', () => {
-		expect(
-			verifyHmacSignature(rawBody, SECRET, { 'x-docusign-signature-1': sign(rawBody) }),
-		).toBe(true);
+		expect(verifyHmacSignature(rawBody, SECRET, { 'x-docusign-signature-1': sign(rawBody) })).toBe(
+			true,
+		);
 	});
 
 	it('rejects a signature made with a different secret', () => {
@@ -103,18 +103,16 @@ describe('verifyHmacSignature', () => {
 	});
 
 	it('rejects when the secret is empty', () => {
-		expect(
-			verifyHmacSignature(rawBody, '', { 'x-docusign-signature-1': sign(rawBody, '') }),
-		).toBe(false);
+		expect(verifyHmacSignature(rawBody, '', { 'x-docusign-signature-1': sign(rawBody, '') })).toBe(
+			false,
+		);
 	});
 
 	it('rejects a signature of a different length without throwing', () => {
 		expect(() =>
 			verifyHmacSignature(rawBody, SECRET, { 'x-docusign-signature-1': 'short' }),
 		).not.toThrow();
-		expect(verifyHmacSignature(rawBody, SECRET, { 'x-docusign-signature-1': 'short' })).toBe(
-			false,
-		);
+		expect(verifyHmacSignature(rawBody, SECRET, { 'x-docusign-signature-1': 'short' })).toBe(false);
 	});
 
 	it('tolerates surrounding whitespace in the header', () => {
@@ -131,29 +129,27 @@ describe('verifyHmacSignature', () => {
 		const signature = sign(asSent);
 
 		expect(reSerialised.equals(asSent)).toBe(false);
-		expect(verifyHmacSignature(asSent, SECRET, { 'x-docusign-signature-1': signature })).toBe(
-			true,
+		expect(verifyHmacSignature(asSent, SECRET, { 'x-docusign-signature-1': signature })).toBe(true);
+		expect(verifyHmacSignature(reSerialised, SECRET, { 'x-docusign-signature-1': signature })).toBe(
+			false,
 		);
-		expect(
-			verifyHmacSignature(reSerialised, SECRET, { 'x-docusign-signature-1': signature }),
-		).toBe(false);
 	});
 
 	it('handles non-ASCII payloads byte-exactly', () => {
 		const unicode = Buffer.from(JSON.stringify({ name: 'Müller – Straße 1' }), 'utf8');
 
-		expect(
-			verifyHmacSignature(unicode, SECRET, { 'x-docusign-signature-1': sign(unicode) }),
-		).toBe(true);
+		expect(verifyHmacSignature(unicode, SECRET, { 'x-docusign-signature-1': sign(unicode) })).toBe(
+			true,
+		);
 	});
 
 	it('is sensitive to key order, because the digest covers the raw text', () => {
 		const first = Buffer.from(JSON.stringify({ a: 1, b: 2 }));
 		const second = Buffer.from(JSON.stringify({ b: 2, a: 1 }));
 
-		expect(
-			verifyHmacSignature(second, SECRET, { 'x-docusign-signature-1': sign(first) }),
-		).toBe(false);
+		expect(verifyHmacSignature(second, SECRET, { 'x-docusign-signature-1': sign(first) })).toBe(
+			false,
+		);
 	});
 });
 
@@ -193,9 +189,9 @@ describe('extractEnvelopeId', () => {
 	});
 
 	it('falls back to the envelope summary', () => {
-		expect(
-			extractEnvelopeId({ data: { envelopeSummary: { envelopeId: 'from-summary' } } }),
-		).toBe('from-summary');
+		expect(extractEnvelopeId({ data: { envelopeSummary: { envelopeId: 'from-summary' } } })).toBe(
+			'from-summary',
+		);
 	});
 
 	it('falls back to a top level envelopeId', () => {

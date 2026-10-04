@@ -53,27 +53,27 @@ Initial release.
 ### Added
 
 - **Docusign node** covering the eSignature REST API v2.1 across nine resources:
-  - *Envelope* — create (from binary documents, from a template, or from a raw JSON definition),
+  - _Envelope_ — create (from binary documents, from a template, or from a raw JSON definition),
     get, get many with filters and pagination, send, void, resend, get form data, get audit events
-  - *Envelope View* — recipient (embedded signing), sender and correct views
-  - *Envelope Document* — get many, download (single, `combined`, `archive`, `certificate`), add,
+  - _Envelope View_ — recipient (embedded signing), sender and correct views
+  - _Envelope Document_ — get many, download (single, `combined`, `archive`, `certificate`), add,
     delete
-  - *Envelope Recipient* — get many, add, update, delete
-  - *Envelope Custom Field* — get many, create, update, delete, for text and list fields
-  - *Template* — get, get many, get documents, get recipients
-  - *Folder* — get many, get items, move envelopes
-  - *User* — get, get many, create, update, delete
-  - *Account* — get
+  - _Envelope Recipient_ — get many, add, update, delete
+  - _Envelope Custom Field_ — get many, create, update, delete, for text and list fields
+  - _Template_ — get, get many, get documents, get recipients
+  - _Folder_ — get many, get items, move envelopes
+  - _User_ — get, get many, create, update, delete
+  - _Account_ — get
 - **Docusign Trigger node** for Docusign Connect webhooks, with HMAC-SHA256 signature verification
   over the raw request body, server-side event filtering, optional download of the signed documents,
   and a Connect configuration lifecycle that is either managed manually or created and removed
   through the API.
 - **Credentials**
-  - *Docusign OAuth2 API* — authorization code grant with the `signature extended` scopes, switchable
+  - _Docusign OAuth2 API_ — authorization code grant with the `signature extended` scopes, switchable
     between the demo and production hosts
-  - *Docusign JWT API* — service integration using an RSA keypair, with RS256 assertions signed
+  - _Docusign JWT API_ — service integration using an RSA keypair, with RS256 assertions signed
     through Node's `crypto` and a consent URL built into the error message when consent is missing
-  - *Docusign Connect HMAC API* — the shared secret used to verify webhooks
+  - _Docusign Connect HMAC API_ — the shared secret used to verify webhooks
 - Automatic resolution of the per-account API base URL through `/oauth/userinfo`, resolved once per
   execution, with optional manual overrides in the credential.
 - Dynamic dropdowns for templates, folders and users.

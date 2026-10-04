@@ -114,10 +114,7 @@ describe('DocusignJwtApi.preAuthentication', () => {
 	it('uses the production token endpoint when configured', async () => {
 		const { context, httpRequest } = helper({ access_token: 'token-123' });
 
-		await credential.preAuthentication.call(
-			context,
-			credentials({ environment: 'production' }),
-		);
+		await credential.preAuthentication.call(context, credentials({ environment: 'production' }));
 
 		expect(lastRequest(httpRequest).url).toBe('https://account.docusign.com/oauth/token');
 	});

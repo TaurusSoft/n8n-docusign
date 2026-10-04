@@ -2,7 +2,7 @@ name: Staleness Check
 
 on:
   schedule:
-    - cron: "0 6 * * 1"  # every Monday
+    - cron: '0 6 * * 1' # every Monday
   workflow_dispatch: {}
 
 jobs:

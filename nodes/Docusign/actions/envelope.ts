@@ -98,9 +98,7 @@ const getAll: OperationHandler = async (ctx, itemIndex, context) => {
 		qs.order_by = options.orderBy;
 	}
 
-	const limit = returnAll
-		? undefined
-		: (ctx.getNodeParameter('limit', itemIndex) as number);
+	const limit = returnAll ? undefined : (ctx.getNodeParameter('limit', itemIndex) as number);
 
 	const envelopes = await docusignApiRequestAllItems(
 		ctx,

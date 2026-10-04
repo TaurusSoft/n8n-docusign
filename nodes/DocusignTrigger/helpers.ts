@@ -153,9 +153,7 @@ export function buildConnectConfigurations(
 	const payloads: IDataObject[] = [];
 
 	if (envelopeEvents.length > 0) {
-		payloads.push(
-			connectConfiguration(webhookUrl, envelopeEvents, name, includeHmac, 'custom'),
-		);
+		payloads.push(connectConfiguration(webhookUrl, envelopeEvents, name, includeHmac, 'custom'));
 	}
 
 	if (recipientEvents.length > 0) {

@@ -11,9 +11,7 @@ describe('document: getAll', () => {
 	it('flattens envelopeDocuments into one item per document', async () => {
 		const ctx = createExecuteFunctions({
 			parameters: { envelopeId: ENVELOPE_ID, options: {} },
-			responses: [
-				{ envelopeDocuments: [{ documentId: '1' }, { documentId: 'certificate' }] },
-			],
+			responses: [{ envelopeDocuments: [{ documentId: '1' }, { documentId: 'certificate' }] }],
 		});
 
 		const items = await documentOperationHandlers.getAll(ctx, 0, testDocusignContext);

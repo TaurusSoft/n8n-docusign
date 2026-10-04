@@ -11,10 +11,5 @@
 		"types": ["node", "vitest/globals"],
 		"noUnusedLocals": false
 	},
-	"include": [
-		"credentials/**/*",
-		"nodes/**/*",
-		"shared/**/*",
-		"tests/**/*"
-	]
+	"include": ["credentials/**/*", "nodes/**/*", "shared/**/*", "tests/**/*"]
 }

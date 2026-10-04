@@ -47,4 +47,6 @@ if (problems.length > 0) {
 	process.exit(1);
 }
 
-console.log(`dist verification passed: ${declared.length} entries, ${requiredAssets.length} icons.`);
+console.log(
+	`dist verification passed: ${declared.length} entries, ${requiredAssets.length} icons.`,
+);

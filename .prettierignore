@@ -1,0 +1,3 @@
+# Prettier already honours .gitignore, so dist/ and node_modules/ need no entry.
+# Local tooling state, ignored through a global git exclude Prettier cannot see.
+.claude/

@@ -119,9 +119,7 @@ describe('template: getRecipients', () => {
 	it('merges signers and carbon copies', async () => {
 		const ctx = createExecuteFunctions({
 			parameters: { templateId: 'tpl-1' },
-			responses: [
-				{ signers: [{ roleName: 'Signer 1' }], carbonCopies: [{ roleName: 'Watcher' }] },
-			],
+			responses: [{ signers: [{ roleName: 'Signer 1' }], carbonCopies: [{ roleName: 'Watcher' }] }],
 		});
 
 		const items = await templateOperationHandlers.getRecipients(ctx, 0, testDocusignContext);

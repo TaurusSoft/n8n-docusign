@@ -44,14 +44,14 @@ they differ only in how the access token is obtained.
 
 ### Which method should I use?
 
-| | **OAuth2** (Authorization Code) | **JWT** (Service Integration) |
-|---|---|---|
-| Setup effort | Low — click through a consent screen | Higher — RSA keypair plus one-time consent |
-| Acts as | The person who authorised it | A user your app impersonates |
-| Access token lifetime | 8 hours, refreshed automatically | 1 hour, minted on demand |
-| Long idle periods | **Breaks after 30 days of inactivity** | Unaffected |
-| Person leaves the company | **Breaks** | Unaffected (use a dedicated system user) |
-| Best for | Getting started, interactive and regularly running workflows | Unattended production workflows |
+|                           | **OAuth2** (Authorization Code)                              | **JWT** (Service Integration)              |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------ |
+| Setup effort              | Low — click through a consent screen                         | Higher — RSA keypair plus one-time consent |
+| Acts as                   | The person who authorised it                                 | A user your app impersonates               |
+| Access token lifetime     | 8 hours, refreshed automatically                             | 1 hour, minted on demand                   |
+| Long idle periods         | **Breaks after 30 days of inactivity**                       | Unaffected                                 |
+| Person leaves the company | **Breaks**                                                   | Unaffected (use a dedicated system user)   |
+| Best for                  | Getting started, interactive and regularly running workflows | Unattended production workflows            |
 
 **Use OAuth2 to get going, and switch to JWT before you depend on a workflow in production.**
 
@@ -113,33 +113,33 @@ explicitly. Setting both **Account ID** and **Account Base URL** skips the looku
 
 ### Envelope
 
-| Operation | What it does |
-|---|---|
-| Create | Create an envelope from binary documents, from a template, or from a raw JSON definition — as a draft or sent immediately |
-| Get | Get one envelope, optionally including recipients, documents, tabs or custom fields |
-| Get Many | Search envelopes by status, date range, free text or envelope IDs |
-| Send | Send a draft envelope to its recipients |
-| Void | Void an envelope with a reason shown to the recipients |
-| Resend | Resend the notification email to pending recipients |
-| Get Form Data | Read the values recipients entered into form fields |
-| Get Audit Events | Read the envelope audit trail |
+| Operation        | What it does                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Create           | Create an envelope from binary documents, from a template, or from a raw JSON definition — as a draft or sent immediately |
+| Get              | Get one envelope, optionally including recipients, documents, tabs or custom fields                                       |
+| Get Many         | Search envelopes by status, date range, free text or envelope IDs                                                         |
+| Send             | Send a draft envelope to its recipients                                                                                   |
+| Void             | Void an envelope with a reason shown to the recipients                                                                    |
+| Resend           | Resend the notification email to pending recipients                                                                       |
+| Get Form Data    | Read the values recipients entered into form fields                                                                       |
+| Get Audit Events | Read the envelope audit trail                                                                                             |
 
 ### Envelope View
 
-| Operation | What it does |
-|---|---|
+| Operation             | What it does                                           |
+| --------------------- | ------------------------------------------------------ |
 | Create Recipient View | Create an embedded signing URL for a captive recipient |
-| Create Sender View | Create a URL for reviewing and sending a draft |
-| Create Correct View | Create a URL for correcting a sent envelope |
+| Create Sender View    | Create a URL for reviewing and sending a draft         |
+| Create Correct View   | Create a URL for correcting a sent envelope            |
 
 ### Envelope Document
 
-| Operation | What it does |
-|---|---|
-| Get Many | List the documents in an envelope |
-| Download | Download a document as binary — a single document, `combined`, `archive` (ZIP) or `certificate` |
-| Add | Add or replace documents on an existing envelope |
-| Delete | Remove documents from an envelope |
+| Operation | What it does                                                                                    |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| Get Many  | List the documents in an envelope                                                               |
+| Download  | Download a document as binary — a single document, `combined`, `archive` (ZIP) or `certificate` |
+| Add       | Add or replace documents on an existing envelope                                                |
+| Delete    | Remove documents from an envelope                                                               |
 
 ### Envelope Recipient
 
@@ -265,17 +265,17 @@ The package has no runtime dependencies.
 
 ## Troubleshooting
 
-| Symptom | Cause and fix |
-|---|---|
-| `ENVELOPE_DOES_NOT_EXIST` for an envelope you can see in the UI | The credential points at the other environment. Demo and production are separate accounts — check **Environment**. |
-| `consent_required` on a JWT credential | Consent has not been granted for the impersonated user. Set **Consent Redirect URI** to a Redirect URI registered for the app, then run the operation once: the error message contains the exact URL to open. |
-| `USER_LACKS_PERMISSIONS` | The operation needs an account administrator. This affects all Connect endpoints and most account-wide operations. |
-| Envelope ignores the account expiration policy | **Reminder Delay** or **Reminder Frequency** was set without **Expire After**. Any notification setting takes the envelope off the account defaults entirely, so set both. |
-| Credential worked for weeks, then stopped | An OAuth2 refresh token expires after 30 days without use. Reconnect the credential, and switch to JWT for workflows that run rarely. |
-| Trigger answers 401 for every webhook | The HMAC secret in n8n does not match the one on the Connect configuration, or the configuration sends XML rather than JSON. |
-| Trigger never fires | The Connect configuration points at the Test URL while the workflow is active, or the events you selected live in a Custom Recipient configuration you have not created. |
-| `Select at least one event` when activating | Automatic mode needs at least one selected event. |
-| Envelope created but nobody received an email | **Status** was left on `Created (Draft)`, or the recipient has a Client User ID and is therefore an embedded signer who gets no email. |
+| Symptom                                                         | Cause and fix                                                                                                                                                                                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENVELOPE_DOES_NOT_EXIST` for an envelope you can see in the UI | The credential points at the other environment. Demo and production are separate accounts — check **Environment**.                                                                                            |
+| `consent_required` on a JWT credential                          | Consent has not been granted for the impersonated user. Set **Consent Redirect URI** to a Redirect URI registered for the app, then run the operation once: the error message contains the exact URL to open. |
+| `USER_LACKS_PERMISSIONS`                                        | The operation needs an account administrator. This affects all Connect endpoints and most account-wide operations.                                                                                            |
+| Envelope ignores the account expiration policy                  | **Reminder Delay** or **Reminder Frequency** was set without **Expire After**. Any notification setting takes the envelope off the account defaults entirely, so set both.                                    |
+| Credential worked for weeks, then stopped                       | An OAuth2 refresh token expires after 30 days without use. Reconnect the credential, and switch to JWT for workflows that run rarely.                                                                         |
+| Trigger answers 401 for every webhook                           | The HMAC secret in n8n does not match the one on the Connect configuration, or the configuration sends XML rather than JSON.                                                                                  |
+| Trigger never fires                                             | The Connect configuration points at the Test URL while the workflow is active, or the events you selected live in a Custom Recipient configuration you have not created.                                      |
+| `Select at least one event` when activating                     | Automatic mode needs at least one selected event.                                                                                                                                                             |
+| Envelope created but nobody received an email                   | **Status** was left on `Created (Draft)`, or the recipient has a Client User ID and is therefore an embedded signer who gets no email.                                                                        |
 
 ## Development
 

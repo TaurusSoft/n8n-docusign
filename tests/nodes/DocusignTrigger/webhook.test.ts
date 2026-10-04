@@ -404,9 +404,7 @@ describe('DocusignTrigger webhook lifecycle in automatic mode', () => {
 	it('creates a configuration named after the workflow and stores its ID', async () => {
 		const ctx = autoCtx({ responses: [{ connectId: '42' }] });
 
-		const created = await node.webhookMethods.default.create.call(
-			ctx as unknown as IHookFunctions,
-		);
+		const created = await node.webhookMethods.default.create.call(ctx as unknown as IHookFunctions);
 
 		expect(created).toBe(true);
 		expect(ctx.requests[0].options.method).toBe('POST');
@@ -456,9 +454,7 @@ describe('DocusignTrigger webhook lifecycle in automatic mode', () => {
 			responses: [{}, {}],
 		});
 
-		const deleted = await node.webhookMethods.default.delete.call(
-			ctx as unknown as IHookFunctions,
-		);
+		const deleted = await node.webhookMethods.default.delete.call(ctx as unknown as IHookFunctions);
 
 		expect(deleted).toBe(true);
 		expect(ctx.requests.map((request) => request.options.url)).toEqual([
@@ -474,9 +470,7 @@ describe('DocusignTrigger webhook lifecycle in automatic mode', () => {
 			responses: [new Error('404')],
 		});
 
-		const deleted = await node.webhookMethods.default.delete.call(
-			ctx as unknown as IHookFunctions,
-		);
+		const deleted = await node.webhookMethods.default.delete.call(ctx as unknown as IHookFunctions);
 
 		expect(deleted).toBe(false);
 		expect(ctx.staticData.docusignConnectIds).toBeUndefined();
@@ -496,9 +490,7 @@ describe('DocusignTrigger webhook lifecycle in automatic mode', () => {
 			],
 		});
 
-		const deleted = await node.webhookMethods.default.delete.call(
-			ctx as unknown as IHookFunctions,
-		);
+		const deleted = await node.webhookMethods.default.delete.call(ctx as unknown as IHookFunctions);
 
 		expect(deleted).toBe(true);
 		expect(ctx.requests.map((request) => request.options.url)).toEqual([
@@ -510,9 +502,7 @@ describe('DocusignTrigger webhook lifecycle in automatic mode', () => {
 	it('reports success when the lookup finds nothing left to delete', async () => {
 		const ctx = autoCtx({ staticData: {}, responses: [{ configurations: [] }] });
 
-		const deleted = await node.webhookMethods.default.delete.call(
-			ctx as unknown as IHookFunctions,
-		);
+		const deleted = await node.webhookMethods.default.delete.call(ctx as unknown as IHookFunctions);
 
 		expect(deleted).toBe(true);
 		expect(ctx.requests.map((request) => request.options.method)).toEqual(['GET']);

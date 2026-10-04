@@ -50,9 +50,7 @@ describe('folder: getItems', () => {
 	it('reads the paginated folderItems property', async () => {
 		const ctx = createExecuteFunctions({
 			parameters: { folderId: 'f1', returnAll: true, filters: {} },
-			responses: [
-				{ folderItems: [{ envelopeId: 'e1' }], resultSetSize: 1, totalSetSize: 1 },
-			],
+			responses: [{ folderItems: [{ envelopeId: 'e1' }], resultSetSize: 1, totalSetSize: 1 }],
 		});
 
 		const items = await folderOperationHandlers.getItems(ctx, 0, testDocusignContext);

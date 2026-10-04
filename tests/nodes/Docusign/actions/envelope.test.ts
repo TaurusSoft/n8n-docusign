@@ -294,9 +294,7 @@ describe('envelope: getFormData and getAuditEvents', () => {
 
 		await envelopeOperationHandlers.getFormData(ctx, 0, testDocusignContext);
 
-		expect(ctx.requests[0].options.url).toBe(
-			`${API_BASE_URL}/envelopes/${ENVELOPE_ID}/form_data`,
-		);
+		expect(ctx.requests[0].options.url).toBe(`${API_BASE_URL}/envelopes/${ENVELOPE_ID}/form_data`);
 	});
 
 	it('flattens audit events into one item each', async () => {

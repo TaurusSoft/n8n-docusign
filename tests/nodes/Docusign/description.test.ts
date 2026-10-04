@@ -14,14 +14,15 @@ function optionValues(property: INodeProperties): string[] {
 	return (property.options as INodePropertyOptions[]).map((option) => String(option.value));
 }
 
-const resourceProperty = properties.find((property) => property.name === 'resource') as INodeProperties;
+const resourceProperty = properties.find(
+	(property) => property.name === 'resource',
+) as INodeProperties;
 const resources = optionValues(resourceProperty);
 
 function operationProperty(resource: string): INodeProperties {
 	const match = properties.find(
 		(property) =>
-			property.name === 'operation' &&
-			property.displayOptions?.show?.resource?.includes(resource),
+			property.name === 'operation' && property.displayOptions?.show?.resource?.includes(resource),
 	);
 
 	if (match === undefined) {
@@ -109,9 +110,7 @@ describe('Docusign node description', () => {
 	});
 
 	it('lists the resource options alphabetically by name', () => {
-		const names = (resourceProperty.options as INodePropertyOptions[]).map(
-			(option) => option.name,
-		);
+		const names = (resourceProperty.options as INodePropertyOptions[]).map((option) => option.name);
 
 		expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
 	});
@@ -142,9 +141,7 @@ describe('description and handler registry agree', () => {
 			const declared = optionValues(operationProperty(resource));
 
 			for (const operation of Object.keys(handlers)) {
-				expect(declared, `operation ${resource}.${operation} is not offered`).toContain(
-					operation,
-				);
+				expect(declared, `operation ${resource}.${operation} is not offered`).toContain(operation);
 			}
 		}
 	});
@@ -258,9 +255,7 @@ describe('property hygiene', () => {
 			);
 
 			for (const operation of shownOperations) {
-				expect(declared, `${property.name} references ${String(operation)}`).toContain(
-					operation,
-				);
+				expect(declared, `${property.name} references ${String(operation)}`).toContain(operation);
 			}
 		}
 	});

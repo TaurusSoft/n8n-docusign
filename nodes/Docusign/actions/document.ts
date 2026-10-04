@@ -1,11 +1,7 @@
 import type { IDataObject } from 'n8n-workflow';
 
 import type { FullHttpResponse } from '../GenericFunctions';
-import {
-	docusignApiRequest,
-	documentsFromBinary,
-	responseToBinary,
-} from '../GenericFunctions';
+import { docusignApiRequest, documentsFromBinary, responseToBinary } from '../GenericFunctions';
 import { jsonItems, splitList } from './helpers';
 import type { OperationHandler } from './helpers';
 
@@ -104,12 +100,7 @@ const add: OperationHandler = async (ctx, itemIndex, context) => {
 	const binaryPropertyNames = ctx.getNodeParameter('binaryPropertyNames', itemIndex) as string;
 	const startDocumentId = ctx.getNodeParameter('startDocumentId', itemIndex) as number;
 
-	const documents = await documentsFromBinary(
-		ctx,
-		itemIndex,
-		binaryPropertyNames,
-		startDocumentId,
-	);
+	const documents = await documentsFromBinary(ctx, itemIndex, binaryPropertyNames, startDocumentId);
 
 	const response = (await docusignApiRequest(
 		ctx,

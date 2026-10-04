@@ -117,9 +117,7 @@ describe('resolveDocusignContext', () => {
 	it('falls back to the first account when none is flagged as default', async () => {
 		const ctx = createExecuteFunctions({
 			credentials: { docusignOAuth2Api: { environment: 'demo' } },
-			responses: [
-				{ accounts: [{ account_id: 'only', base_uri: 'https://na3.docusign.net' }] },
-			],
+			responses: [{ accounts: [{ account_id: 'only', base_uri: 'https://na3.docusign.net' }] }],
 		});
 
 		const context = await resolveDocusignContext(ctx, 'docusignOAuth2Api');
@@ -166,9 +164,17 @@ describe('docusignApiRequest', () => {
 	it('uses an absolute URL when one is given, e.g. to follow nextUri', async () => {
 		const ctx = createExecuteFunctions({ responses: [{ ok: true }] });
 
-		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/ignored', undefined, {}, {
-			url: 'https://demo.docusign.net/restapi/v2.1/accounts/x/envelopes?start_position=10',
-		});
+		await docusignApiRequest(
+			ctx,
+			testDocusignContext,
+			'GET',
+			'/ignored',
+			undefined,
+			{},
+			{
+				url: 'https://demo.docusign.net/restapi/v2.1/accounts/x/envelopes?start_position=10',
+			},
+		);
 
 		expect(ctx.requests[0].options.url).toContain('start_position=10');
 	});
@@ -224,10 +230,18 @@ describe('docusignApiRequest', () => {
 	it('switches off JSON parsing for binary downloads', async () => {
 		const ctx = createExecuteFunctions({ responses: [{ body: Buffer.from('x') }] });
 
-		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/doc', undefined, {}, {
-			encoding: 'arraybuffer',
-			returnFullResponse: true,
-		});
+		await docusignApiRequest(
+			ctx,
+			testDocusignContext,
+			'GET',
+			'/doc',
+			undefined,
+			{},
+			{
+				encoding: 'arraybuffer',
+				returnFullResponse: true,
+			},
+		);
 
 		expect(ctx.requests[0].options.json).toBe(false);
 		expect(ctx.requests[0].options.encoding).toBe('arraybuffer');
@@ -237,10 +251,18 @@ describe('docusignApiRequest', () => {
 	it('does not ask for JSON on a binary download', async () => {
 		const ctx = createExecuteFunctions({ responses: [{ body: Buffer.from('x') }] });
 
-		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/doc', undefined, {}, {
-			encoding: 'arraybuffer',
-			returnFullResponse: true,
-		});
+		await docusignApiRequest(
+			ctx,
+			testDocusignContext,
+			'GET',
+			'/doc',
+			undefined,
+			{},
+			{
+				encoding: 'arraybuffer',
+				returnFullResponse: true,
+			},
+		);
 
 		expect(ctx.requests[0].options.headers?.Accept).toBe('*/*');
 	});
@@ -248,10 +270,18 @@ describe('docusignApiRequest', () => {
 	it('lets a caller state the content type it expects', async () => {
 		const ctx = createExecuteFunctions({ responses: [{ body: Buffer.from('x') }] });
 
-		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/doc', undefined, {}, {
-			encoding: 'arraybuffer',
-			headers: { Accept: 'application/zip' },
-		});
+		await docusignApiRequest(
+			ctx,
+			testDocusignContext,
+			'GET',
+			'/doc',
+			undefined,
+			{},
+			{
+				encoding: 'arraybuffer',
+				headers: { Accept: 'application/zip' },
+			},
+		);
 
 		expect(ctx.requests[0].options.headers?.Accept).toBe('application/zip');
 	});
@@ -259,9 +289,17 @@ describe('docusignApiRequest', () => {
 	it('merges extra headers', async () => {
 		const ctx = createExecuteFunctions({ responses: [{}] });
 
-		await docusignApiRequest(ctx, testDocusignContext, 'GET', '/x', undefined, {}, {
-			headers: { 'X-Custom': 'yes' },
-		});
+		await docusignApiRequest(
+			ctx,
+			testDocusignContext,
+			'GET',
+			'/x',
+			undefined,
+			{},
+			{
+				headers: { 'X-Custom': 'yes' },
+			},
+		);
 
 		expect(ctx.requests[0].options.headers).toMatchObject({
 			Accept: 'application/json',
@@ -294,9 +332,9 @@ describe('docusignApiRequest', () => {
 			],
 		});
 
-		await expect(docusignApiRequest(ctx, testDocusignContext, 'GET', '/envelopes/x')).rejects.toThrow(
-			NodeApiError,
-		);
+		await expect(
+			docusignApiRequest(ctx, testDocusignContext, 'GET', '/envelopes/x'),
+		).rejects.toThrow(NodeApiError);
 	});
 });
 

@@ -91,8 +91,8 @@ describe('buildAccountApiBaseUrl', () => {
 	});
 
 	it('normalises the base URL first', () => {
-		expect(buildAccountApiBaseUrl('https://demo.docusign.net/restapi/v2.1/accounts/old', 'new')).toBe(
-			'https://demo.docusign.net/restapi/v2.1/accounts/new',
-		);
+		expect(
+			buildAccountApiBaseUrl('https://demo.docusign.net/restapi/v2.1/accounts/old', 'new'),
+		).toBe('https://demo.docusign.net/restapi/v2.1/accounts/new');
 	});
 });

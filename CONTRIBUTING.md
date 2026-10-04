@@ -24,17 +24,17 @@ npm test
 
 ## Scripts
 
-| Script | Purpose |
-|---|---|
-| `npm run dev` | Start n8n with this node loaded and rebuild on change |
-| `npm run build` | Compile to `dist/` and copy icons and codex files |
-| `npm run lint` | Run the n8n community node linter |
-| `npm run lint:fix` | Fix what the linter can fix automatically |
-| `npm test` | Run the whole test suite |
-| `npm run test:watch` | Re-run tests on change |
-| `npm run test:coverage` | Run tests and enforce coverage thresholds |
-| `npm run typecheck` | Typecheck production code **and** tests |
-| `npm run release` | Bump the version, write the changelog, tag and push |
+| Script                  | Purpose                                               |
+| ----------------------- | ----------------------------------------------------- |
+| `npm run dev`           | Start n8n with this node loaded and rebuild on change |
+| `npm run build`         | Compile to `dist/` and copy icons and codex files     |
+| `npm run lint`          | Run the n8n community node linter                     |
+| `npm run lint:fix`      | Fix what the linter can fix automatically             |
+| `npm test`              | Run the whole test suite                              |
+| `npm run test:watch`    | Re-run tests on change                                |
+| `npm run test:coverage` | Run tests and enforce coverage thresholds             |
+| `npm run typecheck`     | Typecheck production code **and** tests               |
+| `npm run release`       | Bump the version, write the changelog, tag and push   |
 
 ## Project layout
 
@@ -102,8 +102,8 @@ cannot: query serialisation, HTTP status handling, multi-page pagination and bin
 
 ```ts
 const ctx = createExecuteFunctions({
-  parameters: { envelopeId: 'env-1', options: {} },
-  responses: [myFixture],
+	parameters: { envelopeId: 'env-1', options: {} },
+	responses: [myFixture],
 });
 
 await myHandlers.myOperation(ctx, 0, testDocusignContext);
