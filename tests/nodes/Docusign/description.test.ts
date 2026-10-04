@@ -198,6 +198,30 @@ describe('property hygiene', () => {
 		}
 	});
 
+	it('never offers a collection option that shadows a visible property', () => {
+		for (const resource of resources) {
+			for (const operation of optionValues(operationProperty(resource))) {
+				const visible = visibleProperties(resource, operation);
+				const names = visible.map((property) => property.name);
+
+				for (const property of visible.filter((entry) => entry.type === 'collection')) {
+					for (const option of (property.options ?? []) as INodeProperties[]) {
+						const shownFor = option.displayOptions?.show?.operation;
+
+						if (shownFor !== undefined && !shownFor.includes(operation)) {
+							continue;
+						}
+
+						expect(
+							names,
+							`${resource}.${operation}: ${property.name}.${option.name} shadows a property`,
+						).not.toContain(option.name);
+					}
+				}
+			}
+		}
+	});
+
 	it('shows at least one input besides the selectors for every operation', () => {
 		for (const resource of resources) {
 			for (const operation of optionValues(operationProperty(resource))) {

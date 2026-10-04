@@ -146,6 +146,11 @@ export const customFieldFields: INodeProperties[] = [
 				name: 'fieldName',
 				type: 'string',
 				default: '',
+				displayOptions: {
+					show: {
+						operation: ['update'],
+					},
+				},
 				description: 'New name of the custom field',
 			},
 			{
