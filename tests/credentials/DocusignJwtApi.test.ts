@@ -137,9 +137,12 @@ describe('DocusignJwtApi.preAuthentication', () => {
 			response: { body: { error: 'consent_required' } },
 		});
 
-		await expect(credential.preAuthentication.call(context, credentials())).rejects.toThrow(
-			/account-d\.docusign\.com\/oauth\/auth\?response_type=code/,
-		);
+		await expect(
+			credential.preAuthentication.call(
+				context,
+				credentials({ consentRedirectUri: 'https://app.test/callback' }),
+			),
+		).rejects.toThrow(/account-d\.docusign\.com\/oauth\/auth\?response_type=code/);
 	});
 
 	it('includes the integration key and scopes in the consent URL', async () => {
@@ -147,12 +150,50 @@ describe('DocusignJwtApi.preAuthentication', () => {
 			response: { body: { error: 'consent_required' } },
 		});
 
-		const error = await credential
-			.preAuthentication.call(context, credentials())
+		const error = await credential.preAuthentication
+			.call(context, credentials({ consentRedirectUri: 'https://app.test/callback' }))
 			.catch((caught: Error) => caught);
 
 		expect((error as Error).message).toContain('client_id=integration-key');
 		expect((error as Error).message).toContain('impersonation');
+	});
+
+	it('builds the consent URL with the registered redirect URI, not a Docusign default', async () => {
+		const { context } = helper(undefined, {
+			response: { body: { error: 'consent_required' } },
+		});
+
+		const error = await credential.preAuthentication
+			.call(context, credentials({ consentRedirectUri: 'https://app.test/callback' }))
+			.catch((caught: Error) => caught);
+
+		expect((error as Error).message).toContain('redirect_uri=https%3A%2F%2Fapp.test%2Fcallback');
+		expect((error as Error).message).not.toContain('www.docusign.com');
+	});
+
+	it('asks for a redirect URI instead of naming a URL Docusign would reject', async () => {
+		const { context } = helper(undefined, {
+			response: { body: { error: 'consent_required' } },
+		});
+
+		const error = await credential.preAuthentication
+			.call(context, credentials())
+			.catch((caught: Error) => caught);
+
+		expect((error as Error).message).toMatch(/Consent Redirect URI/);
+		expect((error as Error).message).not.toContain('/oauth/auth?');
+	});
+
+	it('treats a blank redirect URI like a missing one', async () => {
+		const { context } = helper(undefined, {
+			response: { body: { error: 'consent_required' } },
+		});
+
+		const error = await credential.preAuthentication
+			.call(context, credentials({ consentRedirectUri: '   ' }))
+			.catch((caught: Error) => caught);
+
+		expect((error as Error).message).toMatch(/Consent Redirect URI/);
 	});
 
 	it('parses a stringified error body', async () => {

@@ -91,12 +91,16 @@ envelope IDs, which is the single most common source of `ENVELOPE_DOES_NOT_EXIST
    user is recommended so the integration does not break when a person leaves.
 3. In n8n create a **Docusign JWT API** credential and fill in **Integration Key**, **User ID** and
    the **Private Key** (including the `-----BEGIN RSA PRIVATE KEY-----` lines).
-4. Grant consent once. Either:
+4. Only for the individual consent route in the next step: register a **Redirect URI** for the app
+   in the Developer Center and put it into the credential's **Consent Redirect URI**. It is never
+   called — it only appears in the consent URL, and Docusign refuses a consent URL whose redirect
+   URI is not registered for the app, which is why it cannot be defaulted for you.
+5. Grant consent once. Either:
    - **Individually:** open the consent URL as that user and accept. If you skip this step the node
      tells you the exact URL to open, so you can simply run it once and follow the message.
    - **Administratively:** grant consent for the whole organisation in Docusign Admin, which
      requires an eligible plan and removes the per-user step.
-5. Use **Test Connection**.
+6. Use **Test Connection**.
 
 ### Account selection
 
@@ -264,7 +268,7 @@ The package has no runtime dependencies.
 | Symptom | Cause and fix |
 |---|---|
 | `ENVELOPE_DOES_NOT_EXIST` for an envelope you can see in the UI | The credential points at the other environment. Demo and production are separate accounts — check **Environment**. |
-| `consent_required` on a JWT credential | Consent has not been granted for the impersonated user. Run the operation once; the error message contains the exact URL to open. |
+| `consent_required` on a JWT credential | Consent has not been granted for the impersonated user. Set **Consent Redirect URI** to a Redirect URI registered for the app, then run the operation once: the error message contains the exact URL to open. |
 | `USER_LACKS_PERMISSIONS` | The operation needs an account administrator. This affects all Connect endpoints and most account-wide operations. |
 | Credential worked for weeks, then stopped | An OAuth2 refresh token expires after 30 days without use. Reconnect the credential, and switch to JWT for workflows that run rarely. |
 | Trigger answers 401 for every webhook | The HMAC secret in n8n does not match the one on the Connect configuration, or the configuration sends XML rather than JSON. |

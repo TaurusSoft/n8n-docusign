@@ -10,9 +10,6 @@ import type {
 import { buildConsentUrl, getOAuthBaseUrl, JWT_BEARER_GRANT_TYPE } from '../shared/docusign';
 import { createJwtAssertion } from '../shared/jwt';
 
-/** Docusign requires a redirect URI on the consent URL even though it is never used here. */
-const CONSENT_REDIRECT_URI = 'https://www.docusign.com';
-
 export class DocusignJwtApi implements ICredentialType {
 	name = 'docusignJwtApi';
 
@@ -93,6 +90,15 @@ export class DocusignJwtApi implements ICredentialType {
 				'Space-separated scopes to request. The JWT grant flow always needs "impersonation" in addition to "signature".',
 		},
 		{
+			displayName: 'Consent Redirect URI',
+			name: 'consentRedirectUri',
+			type: 'string',
+			default: '',
+			placeholder: 'e.g. https://www.docusign.com',
+			description:
+				'One of the Redirect URIs registered for your app. It is only used to build the one-time consent URL and never called, but Docusign refuses a consent URL carrying a redirect URI it does not know.',
+		},
+		{
 			displayName: 'Account ID',
 			name: 'accountId',
 			type: 'string',
@@ -119,6 +125,7 @@ export class DocusignJwtApi implements ICredentialType {
 		const environment = (credentials.environment as string) ?? 'demo';
 		const integrationKey = (credentials.integrationKey as string) ?? '';
 		const scopes = (credentials.scopes as string) ?? 'signature impersonation';
+		const consentRedirectUri = ((credentials.consentRedirectUri as string) ?? '').trim();
 
 		const assertion = createJwtAssertion({
 			environment,
@@ -143,7 +150,9 @@ export class DocusignJwtApi implements ICredentialType {
 				json: true,
 			})) as IDataObject;
 		} catch (error) {
-			throw new Error(describeTokenError(error, environment, integrationKey, scopes));
+			throw new Error(
+				describeTokenError(error, environment, integrationKey, scopes, consentRedirectUri),
+			);
 		}
 
 		const accessToken = response.access_token as string | undefined;
@@ -180,19 +189,25 @@ export class DocusignJwtApi implements ICredentialType {
  *
  * `consent_required` is by far the most common first-run error, and the fix is
  * always the same: open a URL once. So we build that URL for the user instead of
- * surfacing the bare error code.
+ * surfacing the bare error code - as far as the credential allows, since that URL
+ * needs a redirect URI only the user can supply.
  */
 function describeTokenError(
 	error: unknown,
 	environment: string,
 	integrationKey: string,
 	scopes: string,
+	consentRedirectUri: string,
 ): string {
 	const body = extractErrorBody(error);
 	const docusignError = typeof body?.error === 'string' ? body.error : undefined;
 
 	if (docusignError === 'consent_required') {
-		const consentUrl = buildConsentUrl(environment, integrationKey, scopes, CONSENT_REDIRECT_URI);
+		if (consentRedirectUri === '') {
+			return 'Docusign requires consent before this app can impersonate the user. Granting it means opening a consent URL, and that URL needs a redirect URI Docusign recognises: it only accepts one registered for your app. Add a Redirect URI to the app in the Developer Center - its value does not matter, it is never called - then set it as the Consent Redirect URI on this credential and try again to get the exact URL to open.';
+		}
+
+		const consentUrl = buildConsentUrl(environment, integrationKey, scopes, consentRedirectUri);
 
 		return `Docusign requires consent before this app can impersonate the user. Open this URL once in a browser, sign in as the user and accept: ${consentUrl}`;
 	}

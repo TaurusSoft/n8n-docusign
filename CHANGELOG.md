@@ -18,6 +18,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `Envelope Recipient: Add` numbered recipients from 1, colliding with the IDs an envelope already
   used. It now continues after the highest existing ID, looked up only when a recipient has no ID of
   its own. The new **First Recipient ID** option pins the numbering explicitly.
+- The consent URL in the `consent_required` message of the JWT credential carried a hardcoded
+  `redirect_uri` of `https://www.docusign.com`, which Docusign rejects unless an app happens to have
+  registered it, so the URL users were told to open could not work. The new **Consent Redirect URI**
+  field supplies a registered one; left empty, the message says what to register instead of naming a
+  URL that fails.
 
 ## [0.1.0] - 2026-09-18
 
